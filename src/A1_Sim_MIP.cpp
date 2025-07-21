@@ -229,6 +229,7 @@ public:
     void getthetadot(double q[18],double dq[18]);
     void kinestimatorrr(double q[18], double dq[18], int contact[4], Eigen::Matrix<double,3,3> R);
     void getStateEstimatefullll(double q[18], double dq[18], int contact[4], Eigen::Matrix<double,3,3> R, Eigen::Matrix<double,3,4> toes, int robotdown, size_t ctrlTick, Eigen::Vector3d acc_bFrame);
+    void comparingmodels(double q[18], int robotdown, size_t ctrlTick);
     //A1
     std::vector<raisim::ArticulatedSystem*> A1;
     
@@ -505,7 +506,7 @@ void ExternalComm::HighLevel(){
     //std::cout << "Inhighlevel" << std::endl;
     
     updateData(GET_DATA, HL_DATA, &HLData);
-    if(HLData.control_Tick > switchtime*1000+2999){//} && HLData.control_Tick%10==0){ // Settle down
+    if(HLData.control_Tick > switchtime*1000+2999 && HLData.control_Tick%10==0){ // Settle down
         auto start = std::chrono::high_resolution_clock::now();
         nmpc_obj->planner_MT(HLData.control_Tick, HLData.q, HLData.dq, HLData.toePos, HLData.QPforce);
         HLData.comDes= nmpc_obj->returncomDes();
@@ -647,6 +648,70 @@ void ExternalComm::getthetadot(double q[18],double dq[18]){
     dq[3] = thetadot(0);
     dq[4] = thetadot(1);
     dq[5] = thetadot(2);
+}
+
+void ExternalComm::comparingmodels(double q[18], int robotdown, size_t ctrlTick){
+
+    double fr_toe_d[3], fl_toe_d[3], rl_toe_d[3], rr_toe_d[3];
+    double fr_toe_u[3], fl_toe_u[3], rl_toe_u[3], rr_toe_u[3];
+    double fr_hip_d[3], fl_hip_d[3], rl_hip_d[3], rr_hip_d[3];
+    double fr_hip_u[3], fl_hip_u[3], rl_hip_u[3], rr_hip_u[3];
+    Eigen::Matrix<double,18,18> D_u = Eigen::MatrixXd::Zero(18,18);
+    Eigen::Matrix<double,18,18> D_d = Eigen::MatrixXd::Zero(18,18);
+    Eigen::Matrix<double,18,1> H_u = Eigen::MatrixXd::Zero(18,1);
+    Eigen::Matrix<double,18,1> H_d = Eigen::MatrixXd::Zero(18,1);
+    double qpitch = q[4];
+    if(robotdown){
+        FK_FR_toe(fr_toe_d, q); FK_FL_toe(fl_toe_d, q);
+        FK_RR_toe(rr_toe_d, q); FK_RL_toe(rl_toe_d, q);
+        FK_FL_hip(fl_hip_d, q); FK_FR_hip(fr_hip_d, q);
+        FK_RR_hip(rr_hip_d, q); FK_RL_hip(rl_hip_d, q);
+        D_mat(D_d.data(), q);
+        G_vec(H_d.data(), q);
+
+        q[4] = 1.5708+ qpitch; // 90 degrees
+        FK_FR_toe_u(fr_toe_u, q); FK_FL_toe_u(fl_toe_u, q);
+        FK_RR_toe_u(rr_toe_u, q); FK_RL_toe_u(rl_toe_u, q);
+        FK_FL_hip_u(fl_hip_u, q); FK_FR_hip_u(fr_hip_u, q);
+        FK_RR_hip_u(rr_hip_u, q); FK_RL_hip_u(rl_hip_u, q);
+        D_mat_u(D_u.data(), q);
+        G_vec_u(H_u.data(), q);
+    }else{
+        FK_FR_toe_u(fr_toe_u, q); FK_FL_toe_u(fl_toe_u, q);
+        FK_RR_toe_u(rr_toe_u, q); FK_RL_toe_u(rl_toe_u, q);
+        FK_FL_hip_u(fl_hip_u, q); FK_FR_hip_u(fr_hip_u, q);
+        FK_RR_hip_u(rr_hip_u, q); FK_RL_hip_u(rl_hip_u, q);
+        D_mat_u(D_u.data(), q);
+        G_vec_u(H_u.data(), q);
+        q[4] = -1.5708+ qpitch; // 90 degrees
+        FK_FR_toe(fr_toe_d, q); FK_FL_toe(fl_toe_d, q);
+        FK_RR_toe(rr_toe_d, q); FK_RL_toe(rl_toe_d, q);
+        FK_FL_hip(fl_hip_d, q); FK_FR_hip(fr_hip_d, q);
+        FK_RR_hip(rr_hip_d, q); FK_RL_hip(rl_hip_d, q);
+        D_mat(D_d.data(), q);
+        G_vec(H_d.data(), q);
+    }
+
+    std::cout << ctrlTick << "," << fr_toe_d[0] << "," << fr_toe_d[1] << "," << fr_toe_d[2] << ","
+              << fl_toe_d[0] << "," << fl_toe_d[1] << "," << fl_toe_d[2] << ","
+              << rr_toe_d[0] << "," << rr_toe_d[1] << "," << rr_toe_d[2] << ","
+              << rl_toe_d[0] << "," << rl_toe_d[1] << "," << rl_toe_d[2] << ","
+              << fr_hip_d[0] << "," << fr_hip_d[1] << "," << fr_hip_d[2] << ","
+              << fl_hip_d[0] << "," << fl_hip_d[1] << "," << fl_hip_d[2] << ","
+              << rr_hip_d[0] << "," << rr_hip_d[1] << "," << rr_hip_d[2] << ","
+              << rl_hip_d[0] << "," << rl_hip_d[1] << "," << rl_hip_d[2] << ","
+              << fr_toe_u[0] << "," << fr_toe_u[1] << "," << fr_toe_u[2] << ","
+              << fl_toe_u[0] << "," << fl_toe_u[1] << "," << fl_toe_u[2] << ","
+              << rr_toe_u[0] << "," << rr_toe_u[1] << "," << rr_toe_u[2] << ","
+              << rl_toe_u[0] << "," << rl_toe_u[1] << "," << rl_toe_u[2] << ","
+              << fr_hip_u[0] << "," << fr_hip_u[1] << "," << fr_hip_u[2] << ","
+              << fl_hip_u[0] << "," << fl_hip_u[1] << "," << fl_hip_u[2] << ","
+              << rr_hip_u[0] << "," << rr_hip_u[1] << "," << rr_hip_u[2] << ","
+              << rl_hip_u[0] << "," << rl_hip_u[1] << "," << rl_hip_u[2] << ","//std::endl;
+              << D_d.norm()  << "," << H_d.norm() << "," << (D_d-D_u).norm() << "," << (H_d-H_u).norm() << std::endl;
+        
+    q[4] = qpitch; // Reset pitch angle
+
 }
 
 void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int contact[4], Eigen::Matrix<double,3,3> R, Eigen::Matrix<double,3,4> toes, int robotdown, size_t ctrlTick, Eigen::Vector3d acc_bFrame){
@@ -986,6 +1051,7 @@ void ExternalComm::SimExec(){//(std::ofstream &file_est){
     }else if(simcounter>0){
         kinestimatorrr(jpos_est,jvel_est,SimData.ind_LL,rotE);
     }
+    comparingmodels(jpos,robotdown,simcounter);
 
     // file_est << simcounter << "," << jpos[0] << "," << jpos[1] << "," << jpos[2] << "," << jvel[0] << "," << jvel[1] << "," << jvel[2] << ","
     //      << jpos[3] << "," << jpos[4] << "," << jpos[5] << "," << jvel[3] << "," << jvel[4] << "," << jvel[5] << ","
@@ -998,8 +1064,8 @@ void ExternalComm::SimExec(){//(std::ofstream &file_est){
         //  << vel_temp[0] << "," << vel_temp[1] << "," << vel_temp[2] 
         // << "\n";
    
-    memcpy(SimData.q,jpos_est,18*sizeof(double));
-    memcpy(SimData.dq,jvel_est,18*sizeof(double));
+    memcpy(SimData.q,jpos,18*sizeof(double));
+    memcpy(SimData.dq,jvel,18*sizeof(double));
 	memcpy(SimData.rotMatrixDouble,rotMatrixDouble,9*sizeof(double));
     SimData.control_Tick = simcounter;
 
@@ -1184,43 +1250,43 @@ int main(int argc, char *argv[]) {
     
     int simIMU = 0;
 
-    LoopFunc loop_calc("calc_loop", extComm.LLdt,1, boost::bind(&ExternalComm::Calc, &extComm));
-	LoopFunc loop_mpc("mpc_loop", extComm.HLdt,2, boost::bind(&ExternalComm::HighLevel, &extComm));
-	LoopFunc loop_sim("sim_loop", extComm.LLdt,3, boost::bind(&ExternalComm::SimExec, &extComm));
-    // // LoopFunc loop_imu("imu_loop", extComm.LLdt,4, boost::bind(&ExternalComm::getIMMUdata, &extComm));
+    // LoopFunc loop_calc("calc_loop", extComm.LLdt,1, boost::bind(&ExternalComm::Calc, &extComm));
+	// LoopFunc loop_mpc("mpc_loop", extComm.HLdt,2, boost::bind(&ExternalComm::HighLevel, &extComm));
+	// LoopFunc loop_sim("sim_loop", extComm.LLdt,3, boost::bind(&ExternalComm::SimExec, &extComm));
+    // // // LoopFunc loop_imu("imu_loop", extComm.LLdt,4, boost::bind(&ExternalComm::getIMMUdata, &extComm));
 	
-	loop_sim.start();
-	sleep(1.0);
-	loop_mpc.start();
-	sleep(1.0);
-	loop_calc.start();
+	// loop_sim.start();
+	// sleep(1.0);
+	// loop_mpc.start();
+	// sleep(1.0);
+	// loop_calc.start();
 
-    // sleep(1.0);
-    // loop_imu.start();
-    // // loop_flush.start();
+    // // sleep(1.0);
+    // // loop_imu.start();
+    // // // loop_flush.start();
 
-    while(true)// (simIMU < 500000)
-    {
-        sleep(0.1);
-        // extComm.getIMUread2();
-        // simIMU++;
-    }
+    // while(true)// (simIMU < 500000)
+    // {
+    //     sleep(0.1);
+    //     // extComm.getIMUread2();
+    //     // simIMU++;
+    // }
     
     // std::ofstream file_est("../data25/estimatorMT13.csv");
-    // while (true)
-	// {
+    while (true)
+	{
 			
-    //     // sleep(0.1);
-    //     // extComm.getIMUread();
-    //     extComm.SimExec();//(file_est);
-    //     // std::cout << "SimExec" << std::endl;
-    //     extComm.HighLevel();
-    //     // std::cout << "HighLevel" << std::endl;
-    //     extComm.Calc();
-    //     // std::cout << "Calc" << std::endl;
-    //     // sim_setup = false;
+        // sleep(0.1);
+        // extComm.getIMUread();
+        extComm.SimExec();//(file_est);
+        // std::cout << "SimExec" << std::endl;
+        extComm.HighLevel();
+        // std::cout << "HighLevel" << std::endl;
+        extComm.Calc();
+        // std::cout << "Calc" << std::endl;
+        // sim_setup = false;
 
-	// } 
+	} 
 
     // file_est.close();
 
