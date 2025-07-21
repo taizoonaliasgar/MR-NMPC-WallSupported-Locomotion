@@ -664,8 +664,8 @@ void ExternalComm::comparingmodels(double q[18], int robotdown, size_t ctrlTick)
     if(robotdown){
         FK_FR_toe(fr_toe_d, q); FK_FL_toe(fl_toe_d, q);
         FK_RR_toe(rr_toe_d, q); FK_RL_toe(rl_toe_d, q);
-        FK_FL_hip(fl_hip_d, q); FK_FR_hip(fr_hip_d, q);
-        FK_RR_hip(rr_hip_d, q); FK_RL_hip(rl_hip_d, q);
+        FK_FL_hip2(fl_hip_d, q); FK_FR_hip2(fr_hip_d, q);
+        FK_RR_hip2(rr_hip_d, q); FK_RL_hip2(rl_hip_d, q);
         D_mat(D_d.data(), q);
         G_vec(H_d.data(), q);
 
@@ -686,8 +686,8 @@ void ExternalComm::comparingmodels(double q[18], int robotdown, size_t ctrlTick)
         q[4] = -1.5708+ qpitch; // 90 degrees
         FK_FR_toe(fr_toe_d, q); FK_FL_toe(fl_toe_d, q);
         FK_RR_toe(rr_toe_d, q); FK_RL_toe(rl_toe_d, q);
-        FK_FL_hip(fl_hip_d, q); FK_FR_hip(fr_hip_d, q);
-        FK_RR_hip(rr_hip_d, q); FK_RL_hip(rl_hip_d, q);
+        FK_FL_hip2(fl_hip_d, q); FK_FR_hip2(fr_hip_d, q);
+        FK_RR_hip2(rr_hip_d, q); FK_RL_hip2(rl_hip_d, q);
         D_mat(D_d.data(), q);
         G_vec(H_d.data(), q);
     }
