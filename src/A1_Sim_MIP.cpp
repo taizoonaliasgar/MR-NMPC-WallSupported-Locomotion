@@ -773,7 +773,11 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
         // dq[3] = dq_temp[0];
         // dq[4] = dq_temp[1];
         // dq[5] = dq_temp[2];
+        
     }
+    // Eigen::VectorXd rand_noise = 1*Eigen::VectorXd::Random(2);
+    // COM_vel_e[0] = COM_vel_e[0] + rand_noise(0);
+    // COM_vel_e[1] = COM_vel_e[1] + rand_noise(1);
 
 	// Set results
 	q[0] = COM_e[0]; q[1] = COM_e[1]; q[2] = COM_e[2];
