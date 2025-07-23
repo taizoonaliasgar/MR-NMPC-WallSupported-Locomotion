@@ -582,24 +582,25 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     if(uprighty){
         kpGain = 300;
         kdGain = 5;
-        KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
-        KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
+        // KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
+        // KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
     
-        if(con->cnt<4){
-            KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = 2/3*kpGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
-            KD.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kdGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
-        }
+        // if(con->cnt<4){
+        //     KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = 2/3*kpGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
+        //     KD.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kdGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
+        // }
     }
     else if(upKp){
         kpGain = 400;
-        KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
-        KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
+        // KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
+        // KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
     
-        if(con->cnt<4){
-            KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kpGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
-            KD.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kdGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
-        }
-    }else{
+        // if(con->cnt<4){
+        //     KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kpGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
+        //     KD.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kdGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
+        // }
+    }
+    // else{
         KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
         KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
     
@@ -608,7 +609,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
             KD.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kdGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
         }
 
-    }
+    // }
     
     // ====================================================================== //
     // ======================== Equality Constraints ======================== //
