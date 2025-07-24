@@ -56,6 +56,15 @@ set(UT_INC ${CMAKE_CURRENT_SOURCE_DIR}/unitree_legged_sdk/include)
 set(UT_LINK ${CMAKE_CURRENT_SOURCE_DIR}/unitree_legged_sdk/lib)
 set(EXTRA_LIBS -pthread ${UT_LINK}/libunitree_legged_sdk_amd64.so)
 
+set(UT2_INC ${CMAKE_CURRENT_SOURCE_DIR}/unitree_sdk2/include)
+set(UT2_LINK ${CMAKE_CURRENT_SOURCE_DIR}/unitree_sdk2/lib/x86_64)
+set(DDS_INC ${CMAKE_CURRENT_SOURCE_DIR}/unitree_sdk2/thirdparty/include/ddscxx)
+set(DDS_LIB ${CMAKE_CURRENT_SOURCE_DIR}/unitree_sdk2/thirdparty/lib/x86_64)
+set(DDSH_INC ${CMAKE_CURRENT_SOURCE_DIR}/unitree_sdk2/thirdparty/include)
+set(EXTRA_LIBS_2 -pthread ${UT2_LINK}/libunitree_sdk2.a 
+    ${DDS_LIB}/libddscxx.so
+    ${DDS_LIB}/libddsc.so)
+
 include_directories(PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/raisimOgre_include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${EIGEN3_INCLUDE_DIRS})
 #include_directories(${Boost_INCLUDE_DIRS})
