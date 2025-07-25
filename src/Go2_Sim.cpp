@@ -4,8 +4,8 @@
 // Copyright (c) Hybrid Dynamic Systems and Robot Locomotion Lab, Virginia Tech
 //
 
-#include "unitree_legged_sdk/unitree_legged_sdk.h"
-#include "unitree_legged_sdk/unitree_joystick.h"
+// #include "unitree_legged_sdk/unitree_legged_sdk.h"
+// #include "unitree_legged_sdk/unitree_joystick.h"
 #include "raisim/OgreVis.hpp"
 //#include "randyImguiPanel.hpp"
 #include "raisimBasicImguiPanel.hpp"
@@ -40,7 +40,29 @@
 #include <thread>
 #include <memory>
 
-using namespace UNITREE_LEGGED_SDK;
+#include <unitree/robot/channel/channel_publisher.hpp>
+#include <unitree/robot/channel/channel_subscriber.hpp>
+#include <unitree/idl/go2/LowState_.hpp>
+#include <unitree/idl/go2/LowCmd_.hpp>
+#include <unitree/common/time/time_tool.hpp>
+#include <unitree/common/thread/thread.hpp>
+
+#include <unitree/robot/b2/motion_switcher/motion_switcher_client.hpp>
+#include "gamepad.hpp"
+
+
+using namespace unitree::common;
+using namespace unitree::robot;
+using namespace unitree::robot::b2;
+
+#define TOPIC_LOWCMD "rt/lowcmd"
+#define TOPIC_LOWSTATE "rt/lowstate"
+
+constexpr double PosStopF = (2.146E+9f);
+constexpr double VelStopF = (16000.0f);
+
+
+// using namespace UNITREE_LEGGED_SDK;
 
 sharedData HLData;
 sharedData LLData;
@@ -175,6 +197,17 @@ public:
 	void HighLevel();
 	void SimExec();//(std::ofstream &file_est);  
 
+    void Init();
+	void InitLowCmd();
+    void LowStateMessageHandler(const void* messages);
+    void LowCmdWrite();
+	int queryMotionStatus();
+	std::string queryServiceName(std::string form,std::string name);
+
+    void looper(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func);
+    // void loop_mpc(ThreadPtr& thread, std::string name, float HLdt, int cpu_id, std::function<void()> func);
+    // void loop_sim(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func);
+	
     void connectIMU();//(mip::Interface& device);
     void setupIMUfilter();//(mip::Interface& device);
     void configureIMU();//(mip::Interface& device);
@@ -187,8 +220,19 @@ public:
 	FiltStruct_f* angfilter    = (FilterStructure_f*)malloc(sizeof(FilterStructure_f));
 	FiltStruct_f* remotefilter = (FilterStructure_f*)malloc(sizeof(FilterStructure_f));
 
-    float LLdt = 0.00100001f;
-    float HLdt = 0.0100001f;
+    xRockerBtnDataStruct remote;
+
+    // unitree_go::msg::dds_::LowCmd_ low_cmd{};      // default init
+    // unitree_go::msg::dds_::LowState_ low_state{};  // default init
+    // /*publisher subscriber*/
+    // ChannelPublisherPtr<unitree_go::msg::dds_::LowCmd_> lowcmd_publisher;
+    // ChannelSubscriberPtr<unitree_go::msg::dds_::LowState_> lowstate_subscriber;
+    /*LowCmd write thread*/
+    ThreadPtr lowCmdWriteThreadPtr;
+	// MotionSwitcherClient msc;
+
+    float LLdt = 1.0f;
+    float HLdt = 10.0f;
     long simcounter = 0;
     size_t settling = 0.2*ctrlHz;                   // Settling down
     size_t duration = 1.8*ctrlHz;                   // Stand up 
@@ -255,11 +299,30 @@ public:
     // Rpostmult(0,0)=1;Rpostmult(1,1)=-1;Rpostmult(2,2)=-1;
 };
 
+void ExternalComm::looper(ThreadPtr& thread, std::string name, float dt_freq, int cpu_id, std::function<void()> func){
+	/*loop publishing thread*/
+    thread = CreateRecurrentThreadEx(name, cpu_id, 1000*dt_freq, func);
+	
+}
+
+// void ExternalComm::loop_mpc(ThreadPtr& thread, std::string name, float HLdt, int cpu_id, std::function<void()> func){
+// 	/*loop publishing thread*/
+//     thread = CreateRecurrentThreadEx(name, cpu_id, 1000*HLdt, func);
+	
+// }
+
+// void ExternalComm::loop_sim(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func){
+// 	/*loop publishing thread*/
+//     thread = CreateRecurrentThreadEx(name, cpu_id, 1000*LLdt, func);
+	
+// }
+
 
 void ExternalComm::setupRaisim(){  
 	
     raisim::World::setActivationKey(raisim::loadResource("activation.raisim"));
     world.setTimeStep(simfreq_raisim);
+    std::cout << "Raisim world time step: " << std::endl;
 
     /// these method must be called before initApp
     vis->setWorld(&world);
@@ -309,6 +372,7 @@ void ExternalComm::setupRaisim(){
 
     box_right->setPosition(0,-0.32,0.4);
     box_left->setPosition(0,0.32,0.4);
+    std::cout << "Box right position: " << box_right->getPosition() << std::endl;
 
     // vis->createGraphicalObject(box_right, "right_wall", "checkerboard_blue");
     vis->createGraphicalObject(box_left, "left_wall", "checkerboard_blue");
@@ -363,6 +427,7 @@ void ExternalComm::setupRaisim(){
     calfIdx[2] = A1.back()->getBodyIdx("RR_thigh");
     calfIdx[3] = A1.back()->getBodyIdx("RL_thigh");
     // jointFR = A1.back()->getJoint("FR_calf_joint");
+    std::cout << "Exit setupRaisim" << std::endl;
 }
 
 void ExternalComm::setupCallback() {
@@ -502,7 +567,7 @@ void ExternalComm::plotGRFs(std::map<std::string, raisim::VisualObject>* list, E
 
 void ExternalComm::HighLevel(){
 
-    //std::cout << "Inhighlevel" << std::endl;
+    std::cout << "Inhighlevel" << std::endl;
     
     updateData(GET_DATA, HL_DATA, &HLData);
     if(HLData.control_Tick > switchtime*1000+2999){//} && HLData.control_Tick%10==0){ // Settle down
@@ -523,7 +588,7 @@ void ExternalComm::HighLevel(){
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
         // std::cout << duration.count() << "\t" << "Full high level time" << std::endl;
     }
-    //std::cout << "Exitinghighlevel" << std::endl;
+    std::cout << "Exitinghighlevel" << std::endl;
     
     
         
@@ -531,7 +596,7 @@ void ExternalComm::HighLevel(){
 
 void ExternalComm::Calc(){
 
-    // std::cout << "Inlowlevel" << std::endl;
+    std::cout << "Inlowlevel" << std::endl;
 
     updateData(GET_DATA, LL_DATA, &LLData);
 
@@ -561,7 +626,7 @@ void ExternalComm::Calc(){
 
     updateData(SET_DATA, LL_DATA, &LLData);
     loco_obj->settoe_prev();
-    // std::cout << "Exitinglowlevel" << std::endl;
+    std::cout << "Exitinglowlevel" << std::endl;
     
 }
 
@@ -793,7 +858,7 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
 
 void ExternalComm::SimExec(){//(std::ofstream &file_est){
  
-    //std::cout << "InSimExec" << std::endl;
+    std::cout << "InSimExec" << std::endl;
     if (setup_raisim){
         setupRaisim();
         setup_raisim = false; 
@@ -848,6 +913,7 @@ void ExternalComm::SimExec(){//(std::ofstream &file_est){
     //////////////////////////////////
     //      STATE ESTIMATION        //
     //////////////////////////////////
+    std::cout << "Simcounter: " << simcounter << std::endl;
 
     double jpos[18],jpos_est[18], jvel[18],jvel_est[18];
     double rotMatrixDouble[9] = {1,0,0,0,1,0,0,0,1};
@@ -991,6 +1057,7 @@ void ExternalComm::SimExec(){//(std::ofstream &file_est){
     }else if(simcounter>0){
         kinestimatorrr(jpos_est,jvel_est,SimData.ind_LL,rotE);
     }
+    // std::cout << "Estimate recieved" << std::endl;
 
     // file_est << simcounter << "," << jpos[0] << "," << jpos[1] << "," << jpos[2] << "," << jvel[0] << "," << jvel[1] << "," << jvel[2] << ","
     //      << jpos[3] << "," << jpos[4] << "," << jpos[5] << "," << jvel[3] << "," << jvel[4] << "," << jvel[5] << ","
@@ -1010,6 +1077,7 @@ void ExternalComm::SimExec(){//(std::ofstream &file_est){
 
 	// Set Updated data for MPC/LL
 	updateData(SET_DATA, SIM_DATA, &SimData);  
+    std::cout << "SimExec done" << std::endl;
     
 }
 
@@ -1172,13 +1240,108 @@ void ExternalComm::getIMMUdata(){//(mip::Interface& device){
     // }
 }
 
+// void ExternalComm::Init(){
+//     InitLowCmd();
+
+//     /*create publisher*/
+//     lowcmd_publisher.reset(new ChannelPublisher<unitree_go::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
+//     lowcmd_publisher->InitChannel();
+
+//     /*create subscriber*/
+//     lowstate_subscriber.reset(new ChannelSubscriber<unitree_go::msg::dds_::LowState_>(TOPIC_LOWSTATE));
+//     lowstate_subscriber->InitChannel(std::bind(&ExternalComm::LowStateMessageHandler, this, std::placeholders::_1), 1);
+
+// 	/*init MotionSwitcherClient*/
+//     msc.SetTimeout(10.0f); 
+//     msc.Init();
+//     /*Shut down motion control-related service*/
+//     while(queryMotionStatus())
+//     {
+//         std::cout << "Try to deactivate the motion control-related service." << std::endl;
+//         int32_t ret = msc.ReleaseMode(); 
+//         if (ret == 0) {
+//             std::cout << "ReleaseMode succeeded." << std::endl;
+//         } else {
+//             std::cout << "ReleaseMode failed. Error code: " << ret << std::endl;
+//         }
+//         sleep(5);
+//     }
+
+// }
+
+// void ExternalComm::InitLowCmd(){
+//     low_cmd.head()[0] = 0xFE;
+//     low_cmd.head()[1] = 0xEF;
+//     low_cmd.level_flag() = 0xFF;
+//     low_cmd.gpio() = 0;
+
+//     for(int i=0; i<20; i++)
+//     {
+//         low_cmd.motor_cmd()[i].mode() = (0x01);   // motor switch to servo (PMSM) mode
+//         low_cmd.motor_cmd()[i].q() = (PosStopF);
+//         low_cmd.motor_cmd()[i].kp() = (0);
+//         low_cmd.motor_cmd()[i].dq() = (VelStopF);
+//         low_cmd.motor_cmd()[i].kd() = (0);
+//         low_cmd.motor_cmd()[i].tau() = (0);
+//     }
+// }
+
+// void ExternalComm::LowStateMessageHandler(const void* message){
+//     low_state = *(unitree_go::msg::dds_::LowState_*)message;
+// }
+
+// int ExternalComm::queryMotionStatus(){
+
+//     std::string robotForm,motionName;
+//     int motionStatus;
+//     int32_t ret = msc.CheckMode(robotForm,motionName);
+//     if (ret == 0) {
+//         std::cout << "CheckMode succeeded." << std::endl;
+//     } else {
+//         std::cout << "CheckMode failed. Error code: " << ret << std::endl;
+//     }
+//     if(motionName.empty())
+//     {
+//         std::cout << "The motion control-related service is deactivated." << std::endl;
+//         motionStatus = 0;
+//     }
+//     else
+//     {
+//         std::string serviceName = queryServiceName(robotForm,motionName);
+//         std::cout << "Service: "<< serviceName<< " is activate" << std::endl;
+//         motionStatus = 1;
+//     }
+//     return motionStatus;
+// }
+
+// std::string ExternalComm::queryServiceName(std::string form,std::string name){
+
+//     if(form == "0")
+//     {
+//         if(name == "normal" ) return "sport_mode"; 
+//         if(name == "ai" ) return "ai_sport"; 
+//         if(name == "advanced" ) return "advanced_sport"; 
+//     }
+//     else
+//     {
+//         if(name == "ai-w" ) return "wheeled_sport(go2W)"; 
+//         if(name == "normal-w" ) return "wheeled_sport(b2W)";
+//     }
+//     return "";
+// }
+
 
 
 
 
 int main(int argc, char *argv[]) {
 
-    
+    // if (argc < 2){
+    //     std::cout << "Usage: " << argv[0] << " networkInterface" << std::endl;
+    //     exit(-1); 
+    // }
+
+	// ChannelFactory::Instance()->Init(0, argv[1]);
     ExternalComm extComm(argc, argv);
     extComm.loco_obj = std::unique_ptr<LocoWrapper>(new LocoWrapper(argc, argv));
     extComm.nmpc_obj  = std::unique_ptr<SRBNMPC>(new SRBNMPC(argc,argv,1,0));
@@ -1189,17 +1352,24 @@ int main(int argc, char *argv[]) {
     
     int simIMU = 0;
 
-    LoopFunc loop_calc("calc_loop", extComm.LLdt,1, boost::bind(&ExternalComm::Calc, &extComm));
-	LoopFunc loop_mpc("mpc_loop", extComm.HLdt,2, boost::bind(&ExternalComm::HighLevel, &extComm));
-	LoopFunc loop_sim("sim_loop", extComm.LLdt,3, boost::bind(&ExternalComm::SimExec, &extComm));
-    // // LoopFunc loop_imu("imu_loop", extComm.LLdt,4, boost::bind(&ExternalComm::getIMMUdata, &extComm));
+    // LoopFunc loop_calc("calc_loop", extComm.LLdt,1, boost::bind(&ExternalComm::Calc, &extComm));
+	// LoopFunc loop_mpc("mpc_loop", extComm.HLdt,2, boost::bind(&ExternalComm::HighLevel, &extComm));
+	// LoopFunc loop_sim("sim_loop", extComm.LLdt,3, boost::bind(&ExternalComm::SimExec, &extComm));
+    // // // LoopFunc loop_imu("imu_loop", extComm.LLdt,4, boost::bind(&ExternalComm::getIMMUdata, &extComm));
 	
-	loop_sim.start();
-	sleep(1.0);
-	loop_mpc.start();
-	sleep(1.0);
-	loop_calc.start();
+	// loop_sim.start();
+	// sleep(1.0);
+	// loop_mpc.start();
+	// sleep(1.0);
+	// loop_calc.start();
+    // extComm.Init();
 
+    extComm.looper(extComm.lowCmdWriteThreadPtr,  "sim_loop",  extComm.LLdt, 3, std::bind(&ExternalComm::SimExec, &extComm));
+    // sleep(1.0);
+    extComm.looper(extComm.lowCmdWriteThreadPtr,  "mpc_loop",  0.010001f,    1, std::bind(&ExternalComm::HighLevel, &extComm));
+    // sleep(1.0);
+    extComm.looper(extComm.lowCmdWriteThreadPtr, "calc_loop", extComm.LLdt, 2, std::bind(&ExternalComm::Calc, &extComm));
+    
     // sleep(1.0);
     // loop_imu.start();
     // // loop_flush.start();

@@ -611,7 +611,7 @@ void ExternalComm::Calc(){
 				cmd.motorCmd[i].Kd = 8;
 				if(beginPose==true){
 					for(int i=0; i<4; ++i){
-						if(contactIndex[i]==0){
+						if(LLData.ind_LL[i]==0){
 			//							cmd.motorCmd[i].tau = 0;
 							cmd.motorCmd[3*i].Kp = 20;
 							cmd.motorCmd[3*i+1].Kp = 20;

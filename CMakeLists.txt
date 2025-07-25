@@ -386,7 +386,7 @@ target_include_directories(MT_Exp PRIVATE ${UT_INC})
 target_compile_options(MT_Exp PRIVATE -std=c++17)
 
 add_executable(Go2_Sim src/Go2_Sim.cpp)
-target_link_libraries(Go2_Sim PUBLIC raisim::raisimOgre raisim::assimp wrapper2 nmpc_lib optimization_lib ${EXTRA_LIBS} ${LCM} ${CASADI_LIBRARIES} ${Boost_LIBRARIES} ipopt OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(Go2_Sim PUBLIC raisim::raisimOgre raisim::assimp wrapper2 nmpc_lib optimization_lib ${EXTRA_LIBS_2} ${EXTRA_LIBS} ${LCM} ${CASADI_LIBRARIES} ${Boost_LIBRARIES} ipopt OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(Go2_Sim PUBLIC /home/taizoon/raisimEnv/Workspace/mip_sdk/build/examples/libexample_utils.a
                                             /home/taizoon/raisimEnv/Workspace/mip_sdk/build/src/cpp/microstrain/connections/recording/libmicrostrain_recording_connection.a
                                             /home/taizoon/raisimEnv/Workspace/mip_sdk/build/src/c/mip/libmip.a
@@ -401,7 +401,7 @@ target_sources(Go2_Sim PRIVATE /home/taizoon/raisimEnv/Workspace/mip_sdk/src/cpp
                                     /home/taizoon/raisimEnv/Workspace/mip_sdk/src/cpp/mip/definitions/data_filter.cpp)    
 
 target_compile_definitions(Go2_Sim PRIVATE "-DEXAMPLE_ROBOT_RESOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/rsc/")
-target_include_directories(Go2_Sim PRIVATE ${UT_INC})
+target_include_directories(Go2_Sim PRIVATE ${UT2_INC} ${UT_INC} ${DDS_INC} ${DDSH_INC})
 target_compile_options(Go2_Sim PRIVATE -std=c++17)
 
 add_executable(Go2_Exp src/Go2_Exp.cpp)
