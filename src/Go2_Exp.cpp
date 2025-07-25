@@ -4,7 +4,7 @@
 // Copyright (c) Hybrid Dynamic Systems and Robot Locomotion Lab, Virginia Tech
 //
 
-#include "unitree_legged_sdk/unitree_legged_sdk.h"
+// #include "unitree_legged_sdk/unitree_legged_sdk.h"
 // #include "unitree_legged_sdk/unitree_joystick.h"
 
 #include "timer.h"
@@ -42,14 +42,20 @@
 #include <unitree/common/time/time_tool.hpp>
 #include <unitree/common/thread/thread.hpp>
 
+#include <unitree/robot/b2/motion_switcher/motion_switcher_client.hpp>
+#include "gamepad.hpp"
+
 
 using namespace unitree::common;
 using namespace unitree::robot;
+using namespace unitree::robot::b2;
 
 #define TOPIC_LOWCMD "rt/lowcmd"
 #define TOPIC_LOWSTATE "rt/lowstate"
 
-using namespace UNITREE_LEGGED_SDK;
+// using namespace UNITREE_LEGGED_SDK;
+constexpr double PosStopF = (2.146E+9f);
+constexpr double VelStopF = (16000.0f);
 
 bool rough_terrain_en = 0;
 bool obstacle_en = 0;
@@ -101,7 +107,7 @@ private:
 
 public:
 		// ExternalComm() : udpComp0(8082, "192.168.123.10", 8007, sizeof(LowCmd), sizeof(LowState)){
-		ExternalComm() : udpComp(LOWLEVEL), velocity_filter(0.005, 0.01, 0.1){
+		ExternalComm() : velocity_filter(0.005, 0.01, 0.1){//udpComp(LOWLEVEL), 
 
             fid = fopen("/home/taizoon/raisimEnv/Workspace/FootstepPlanner/stateData_1.csv", "w");
             
@@ -170,6 +176,16 @@ public:
 	void Calc();
 	void HighLevel();
 
+    void Init();
+	void InitLowCmd();
+    void LowStateMessageHandler(const void* messages);
+    void LowCmdWrite();
+	int queryMotionStatus();
+	void loop_calc(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func);
+    void loop_mpc(ThreadPtr& thread, std::string name, float HLdt, int cpu_id, std::function<void()> func);
+    void loop_imu(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func);
+	std::string queryServiceName(std::string form,std::string name);
+
 	void connectIMU();
     void setupIMUfilter();
     void configureIMU();
@@ -178,7 +194,7 @@ public:
 	std::unique_ptr<LocoWrapper> loco_obj;
 	std::unique_ptr<SRBNMPC> nmpc_obj;
     // std::unique_ptr<MovingAverageFilter> moving_avg_filter;
-	UDP udpComp;
+	// UDP udpComp;
     FILE *fid;
 
 	long motiontime = 0;
@@ -195,9 +211,18 @@ public:
 	FiltStruct_f* remotefilter = (FilterStructure_f*)malloc(sizeof(FilterStructure_f));
     FiltStruct_d* linearvelfilter = (FilterStructure_d*)malloc(sizeof(FilterStructure_d));
 
-    LowState state = {0};
-	LowCmd cmd = {0};
+    // LowState state = {0};
+	// LowCmd cmd = {0};
 	xRockerBtnDataStruct remote;
+
+    unitree_go::msg::dds_::LowCmd_ low_cmd{};      // default init
+    unitree_go::msg::dds_::LowState_ low_state{};  // default init
+    /*publisher subscriber*/
+    ChannelPublisherPtr<unitree_go::msg::dds_::LowCmd_> lowcmd_publisher;
+    ChannelSubscriberPtr<unitree_go::msg::dds_::LowState_> lowstate_subscriber;
+    /*LowCmd write thread*/
+    ThreadPtr lowCmdWriteThreadPtr;
+	MotionSwitcherClient msc;
 
 	int stop = 0;
 	float vel[3] = {0};
@@ -253,6 +278,147 @@ public:
     void getStateEstimatefullll(double q[18], double dq[18], int contact[4], Eigen::Matrix<double,3,3> R, Eigen::Matrix<double,3,4> toes, int robotdown, size_t ctrlTick, Eigen::Vector3d acc_wFrame);
   
 };
+
+
+uint32_t crc32_core(uint32_t* ptr, uint32_t len){
+
+    unsigned int xbit = 0;
+    unsigned int data = 0;
+    unsigned int CRC32 = 0xFFFFFFFF;
+    const unsigned int dwPolynomial = 0x04c11db7;
+
+    for (unsigned int i = 0; i < len; i++)
+    {
+        xbit = 1 << 31;
+        data = ptr[i];
+        for (unsigned int bits = 0; bits < 32; bits++)
+        {
+            if (CRC32 & 0x80000000)
+            {
+                CRC32 <<= 1;
+                CRC32 ^= dwPolynomial;
+            }
+            else
+            {
+                CRC32 <<= 1;
+            }
+
+            if (data & xbit)
+                CRC32 ^= dwPolynomial;
+            xbit >>= 1;
+        }
+    }
+
+    return CRC32;
+}
+
+void ExternalComm::Init(){
+    InitLowCmd();
+
+    /*create publisher*/
+    lowcmd_publisher.reset(new ChannelPublisher<unitree_go::msg::dds_::LowCmd_>(TOPIC_LOWCMD));
+    lowcmd_publisher->InitChannel();
+
+    /*create subscriber*/
+    lowstate_subscriber.reset(new ChannelSubscriber<unitree_go::msg::dds_::LowState_>(TOPIC_LOWSTATE));
+    lowstate_subscriber->InitChannel(std::bind(&ExternalComm::LowStateMessageHandler, this, std::placeholders::_1), 1);
+
+	/*init MotionSwitcherClient*/
+    msc.SetTimeout(10.0f); 
+    msc.Init();
+    /*Shut down motion control-related service*/
+    while(queryMotionStatus())
+    {
+        std::cout << "Try to deactivate the motion control-related service." << std::endl;
+        int32_t ret = msc.ReleaseMode(); 
+        if (ret == 0) {
+            std::cout << "ReleaseMode succeeded." << std::endl;
+        } else {
+            std::cout << "ReleaseMode failed. Error code: " << ret << std::endl;
+        }
+        sleep(5);
+    }
+
+}
+
+void ExternalComm::InitLowCmd(){
+    low_cmd.head()[0] = 0xFE;
+    low_cmd.head()[1] = 0xEF;
+    low_cmd.level_flag() = 0xFF;
+    low_cmd.gpio() = 0;
+
+    for(int i=0; i<20; i++)
+    {
+        low_cmd.motor_cmd()[i].mode() = (0x01);   // motor switch to servo (PMSM) mode
+        low_cmd.motor_cmd()[i].q() = (PosStopF);
+        low_cmd.motor_cmd()[i].kp() = (0);
+        low_cmd.motor_cmd()[i].dq() = (VelStopF);
+        low_cmd.motor_cmd()[i].kd() = (0);
+        low_cmd.motor_cmd()[i].tau() = (0);
+    }
+}
+
+void ExternalComm::LowStateMessageHandler(const void* message){
+    low_state = *(unitree_go::msg::dds_::LowState_*)message;
+}
+
+int ExternalComm::queryMotionStatus(){
+
+    std::string robotForm,motionName;
+    int motionStatus;
+    int32_t ret = msc.CheckMode(robotForm,motionName);
+    if (ret == 0) {
+        std::cout << "CheckMode succeeded." << std::endl;
+    } else {
+        std::cout << "CheckMode failed. Error code: " << ret << std::endl;
+    }
+    if(motionName.empty())
+    {
+        std::cout << "The motion control-related service is deactivated." << std::endl;
+        motionStatus = 0;
+    }
+    else
+    {
+        std::string serviceName = queryServiceName(robotForm,motionName);
+        std::cout << "Service: "<< serviceName<< " is activate" << std::endl;
+        motionStatus = 1;
+    }
+    return motionStatus;
+}
+
+std::string ExternalComm::queryServiceName(std::string form,std::string name){
+
+    if(form == "0")
+    {
+        if(name == "normal" ) return "sport_mode"; 
+        if(name == "ai" ) return "ai_sport"; 
+        if(name == "advanced" ) return "advanced_sport"; 
+    }
+    else
+    {
+        if(name == "ai-w" ) return "wheeled_sport(go2W)"; 
+        if(name == "normal-w" ) return "wheeled_sport(b2W)";
+    }
+    return "";
+}
+
+void ExternalComm::loop_calc(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func){
+	/*loop publishing thread*/
+    thread = CreateRecurrentThreadEx(name, cpu_id, 1000*LLdt, func);
+	
+}
+
+void ExternalComm::loop_mpc(ThreadPtr& thread, std::string name, float HLdt, int cpu_id, std::function<void()> func){
+	/*loop publishing thread*/
+    thread = CreateRecurrentThreadEx(name, cpu_id, 1000*HLdt, func);
+	
+}
+
+void ExternalComm::loop_imu(ThreadPtr& thread, std::string name, float LLdt, int cpu_id, std::function<void()> func){
+	/*loop publishing thread*/
+    thread = CreateRecurrentThreadEx(name, cpu_id, 1000*LLdt, func);
+	
+}
 
                                        
 void ExternalComm::kinestimatorrr(double q[18], double dq[18], int contact[4], Eigen::Matrix<double,3,3> R){
@@ -469,26 +635,21 @@ void ExternalComm::Calc(){
     updateDataExp(GET_DATA, LL_DATA, &LLData);
 	robotdown = motiontime < switchtime*ctrlHz ? 1 : 0;
 
-    udpComp.Recv();
-	udpComp.GetRecv(state);
+    // udpComp.Recv();
+	// udpComp.GetRecv(state);
     
     // ===================================================== //
 	// ============== Wireless Remote Stuff  =============== //
 	// ===================================================== //
-	memcpy(&remote, state.wirelessRemote, 40);
-	if((int)remote.btn.components.B!=0 && (int)remote.btn.components.L2!=0){
-		stop = 1;
-		cmd.reserve = 0;
-	}
-	if((int)remote.btn.components.A!=0 && (int)remote.btn.components.L2!=0){
-		softFall = true;
-		// soft_fall_both = true;
+    memcpy(&remote, low_state.wireless_remote().data(), 40);
+	if((int)remote.btn.components.L2!=0){
+        if((int)remote.btn.components.B!=0){stop = 1;}
+
+        if((int)remote.btn.components.A!=0){softFall = true;}
 	}
 	if( ((int)remote.btn.components.A!=0) && ((int)remote.btn.components.L2 == 0) ){
 		// std::cout << "A is pressed!" <<std::endl;
-		beginCommand = 1;
-		cmd.reserve = 1;
-		// start_both = true;
+		beginCommand = 1;	
 	}
 	// std::cout << "Setting up first command \n";
 	vel[0] = 0.75f*remote.ly; // x vel
@@ -506,16 +667,16 @@ void ExternalComm::Calc(){
 	// ================= Update the State ================== //
 	// ===================================================== //
 	for (int i=0; i<12; ++i){
-		q[i+6] = state.motorState[i].q;
-		dq[i+6] = state.motorState[i].dq;
-		tauEst[i] = state.motorState[i].tauEst;
+		q[i+6] = low_state.motor_state()[i].q();
+		dq[i+6] = low_state.motor_state()[i].dq();
+		// tauEst[i] = low_state.motor_state()[i].tauEst;
 	}
 	discrete_butter_d(jointfilter,&dq[6]);
 
 	if(robotdown>0){
-		q[3] = state.imu.rpy[0]; q[4] = state.imu.rpy[1]; q[5] = state.imu.rpy[2];
-		dq[3] = state.imu.gyroscope[0]; dq[4] = state.imu.gyroscope[1]; dq[5] = state.imu.gyroscope[2];
-		quat_to_R(state.imu.quaternion,R);
+		q[3] = low_state.imu_state().rpy()[0]; q[4] = low_state.imu_state().rpy()[1]; q[5] = low_state.imu_state().rpy()[2];
+		dq[3] = low_state.imu_state().gyroscope()[0]; dq[4] = low_state.imu_state().gyroscope()[1]; dq[5] = low_state.imu_state().gyroscope()[2];
+		quat_to_R(low_state.imu_state().quaternion().data(),R);
 	}else{	
 		q[3] = LLData.att_euler[0]; q[4] = LLData.att_euler[1]; q[5] = LLData.att_euler[2];//+1.8;//+0.16);
 		dq[3] = LLData.comp_angular_rate[0]; dq[4] = -LLData.comp_angular_rate[1]; dq[5] = -LLData.comp_angular_rate[2];
@@ -525,10 +686,10 @@ void ExternalComm::Calc(){
 
 	// csvFile << motiontime << "," << state.imu.rpy[0] << "," << state.imu.rpy[1] << "," << state.imu.rpy[2] << ","
 	// 		  	<< LLData.att_euler[0] << "," << LLData.att_euler[1] << "," << LLData.att_euler[2] << "\n";
-	csvFile << motiontime << "," << tauEst[0] << "," << tauEst[1] << "," << tauEst[2] << ","
-									<< tauEst[3] << "," << tauEst[4] << "," << tauEst[5] << ","
-										<< tauEst[6] << "," << tauEst[7] << "," << tauEst[8] << ","
-											<< tauEst[9] << "," << tauEst[10] << "," << tauEst[11] << "\n";
+	// csvFile << motiontime << "," << tauEst[0] << "," << tauEst[1] << "," << tauEst[2] << ","
+	// 								<< tauEst[3] << "," << tauEst[4] << "," << tauEst[5] << ","
+	// 									<< tauEst[6] << "," << tauEst[7] << "," << tauEst[8] << ","
+	// 										<< tauEst[9] << "," << tauEst[10] << "," << tauEst[11] << "\n";
 
 	// quat_to_XYZ(state.imu.quaternion[0],state.imu.quaternion[1],state.imu.quaternion[2],state.imu.quaternion[3],
 	//             q[3],q[4],q[5]);
@@ -548,8 +709,8 @@ void ExternalComm::Calc(){
 
 	// Kinematic Estimation
 	int footForce[4];
-	footForce[0] = state.footForce[0]; footForce[1] = state.footForce[1];
-	footForce[2] = state.footForce[2]; footForce[3] = state.footForce[3];
+	footForce[0] = low_state.foot_force()[0]; footForce[1] = low_state.foot_force()[1];
+	footForce[2] = low_state.foot_force()[2]; footForce[3] = low_state.foot_force()[3];
 	static int contactIndex[4] = {1,1,1,1};
 	// kinEst0(footForce,contactIndex,q,dq,R); // Defined in OtherUtils.hpp
 	
@@ -567,10 +728,10 @@ void ExternalComm::Calc(){
 	// ===================================================== //
 	if ( (motiontime < settling) ){
 		for(int i=0; i<12; ++i){
-			cmd.motorCmd[i].dq = 0.0;
-			cmd.motorCmd[i].Kp = 0.0f;
-			cmd.motorCmd[i].Kd = 0.0f;
-			cmd.motorCmd[i].tau = 0.0f;
+			low_cmd.motor_cmd()[i].dq() = 0.0;
+			low_cmd.motor_cmd()[i].kp() = 0.0f;
+			low_cmd.motor_cmd()[i].kd() = 0.0f;
+			low_cmd.motor_cmd()[i].tau() = 0.0f;
 		}
 		
 	}
@@ -617,23 +778,23 @@ void ExternalComm::Calc(){
 
 			// Set the command
 			for(int i = 0; i < 12; ++i){
-				cmd.motorCmd[i].tau = loco_obj->ll->tau[i + 6];
-				cmd.motorCmd[i].q  = loco_obj->ll->q(i + 6);
-				cmd.motorCmd[i].dq = loco_obj->ll->dq(i + 6);
+				low_cmd.motor_cmd()[i].tau() = loco_obj->ll->tau[i + 6];
+				low_cmd.motor_cmd()[i].q()  = loco_obj->ll->q(i + 6);
+				low_cmd.motor_cmd()[i].dq() = loco_obj->ll->dq(i + 6);
 
-				cmd.motorCmd[i].Kp = 10;
-				cmd.motorCmd[i].Kd = 8;
+				low_cmd.motor_cmd()[i].kp() = 10;
+				low_cmd.motor_cmd()[i].kd() = 8;
 				if(beginPose==true){
 					for(int i=0; i<4; ++i){
 						if(contactIndex[i]==0){
 			//							cmd.motorCmd[i].tau = 0;
-							cmd.motorCmd[3*i].Kp = 20;
-							cmd.motorCmd[3*i+1].Kp = 20;
-							cmd.motorCmd[3*i+2].Kp = 20;
+							low_cmd.motor_cmd()[3*i].kp() = 20;
+							low_cmd.motor_cmd()[3*i+1].kp() = 20;
+							low_cmd.motor_cmd()[3*i+2].kp() = 20;
 
-							cmd.motorCmd[3*i].Kd = 1;
-							cmd.motorCmd[3*i+1].Kd = 1;
-							cmd.motorCmd[3*i+2].Kd = 1;  
+							low_cmd.motor_cmd()[3*i].kd() = 1;
+							low_cmd.motor_cmd()[3*i+1].kd() = 1;
+							low_cmd.motor_cmd()[3*i+2].kd() = 1;
 						}
 					}	
 				}
@@ -653,23 +814,23 @@ void ExternalComm::Calc(){
 			float hp_max = 30.0f, hp_min = -30.0f;
 			float kn_max = 33.0f, kn_min = -33.0f;
 			for (int i = 0; i < 4; i++){
-				cmd.motorCmd[3 * i + 0].tau = (cmd.motorCmd[3 * i + 0].tau > hr_max) ? hr_max : cmd.motorCmd[3 * i + 0].tau;
-				cmd.motorCmd[3 * i + 0].tau = (cmd.motorCmd[3 * i + 0].tau < hr_min) ? hr_min : cmd.motorCmd[3 * i + 0].tau;
-				cmd.motorCmd[3 * i + 1].tau = (cmd.motorCmd[3 * i + 1].tau > hp_max) ? hp_max : cmd.motorCmd[3 * i + 1].tau;
-				cmd.motorCmd[3 * i + 1].tau = (cmd.motorCmd[3 * i + 1].tau < hp_min) ? hp_min : cmd.motorCmd[3 * i + 1].tau;
-				cmd.motorCmd[3 * i + 2].tau = (cmd.motorCmd[3 * i + 2].tau > kn_max) ? kn_max : cmd.motorCmd[3 * i + 2].tau;
-				cmd.motorCmd[3 * i + 2].tau = (cmd.motorCmd[3 * i + 2].tau < kn_min) ? kn_min : cmd.motorCmd[3 * i + 2].tau;
+				low_cmd.motor_cmd()[3 * i + 0].tau() = (low_cmd.motor_cmd()[3 * i + 0].tau() > hr_max) ? hr_max : low_cmd.motor_cmd()[3 * i + 0].tau();
+				low_cmd.motor_cmd()[3 * i + 0].tau() = (low_cmd.motor_cmd()[3 * i + 0].tau() < hr_min) ? hr_min : low_cmd.motor_cmd()[3 * i + 0].tau();
+				low_cmd.motor_cmd()[3 * i + 1].tau() = (low_cmd.motor_cmd()[3 * i + 1].tau() > hp_max) ? hp_max : low_cmd.motor_cmd()[3 * i + 1].tau();
+				low_cmd.motor_cmd()[3 * i + 1].tau() = (low_cmd.motor_cmd()[3 * i + 1].tau() < hp_min) ? hp_min : low_cmd.motor_cmd()[3 * i + 1].tau();
+				low_cmd.motor_cmd()[3 * i + 2].tau() = (low_cmd.motor_cmd()[3 * i + 2].tau() > kn_max) ? kn_max : low_cmd.motor_cmd()[3 * i + 2].tau();
+				low_cmd.motor_cmd()[3 * i + 2].tau() = (low_cmd.motor_cmd()[3 * i + 2].tau() < kn_min) ? kn_min : low_cmd.motor_cmd()[3 * i + 2].tau();
 			}
         }
         else if(softFall){
 
 			for (int i = 0; i < 12; ++i){
-				cmd.motorCmd[i].tau = 0.0;
-				cmd.motorCmd[i].q   = 0.0;
-				cmd.motorCmd[i].dq  = 0.0;
+				low_cmd.motor_cmd()[i].tau() = 0.0;
+				low_cmd.motor_cmd()[i].q()   = 0.0;
+				low_cmd.motor_cmd()[i].dq()  = 0.0;
 
-				cmd.motorCmd[i].Kp = 0;
-				cmd.motorCmd[i].Kd = ( ( (i+1)%3 ) == 0 ) ? 6 : 3;
+				low_cmd.motor_cmd()[i].kp() = 0;
+				low_cmd.motor_cmd()[i].kd() = ( ( (i+1)%3 ) == 0 ) ? 6 : 3;
 			}
 		}
         else if ((!beginCommand) && (!softFall)){
@@ -683,8 +844,10 @@ void ExternalComm::Calc(){
     }
 
 	motiontime += 1;
-    udpComp.SetSend(cmd);
-    udpComp.Send();
+    // udpComp.SetSend(cmd);
+    // udpComp.Send();
+    low_cmd.crc() = crc32_core((uint32_t *)&low_cmd, (sizeof(unitree_go::msg::dds_::LowCmd_)>>2)-1);
+    lowcmd_publisher->Write(low_cmd);
 
 }
 
@@ -886,7 +1049,13 @@ void ExternalComm::getIMMUdata(){//(mip::Interface& device){
 
 int main(int argc, char *argv[]) {
 
-    InitEnvironment();
+    // InitEnvironment();
+    if (argc < 2){
+        std::cout << "Usage: " << argv[0] << " networkInterface" << std::endl;
+        exit(-1); 
+    }
+
+	ChannelFactory::Instance()->Init(0, argv[1]);
     ExternalComm extComm;
     
 	extComm.loco_obj = std::unique_ptr<LocoWrapper>(new LocoWrapper(argc, argv));
@@ -897,18 +1066,13 @@ int main(int argc, char *argv[]) {
     extComm.configureIMU();
     extComm.setupIMUfilter();
 
+    extComm.Init();
 
-    LoopFunc loop_calc("calc_loop", extComm.LLdt,1, boost::bind(&ExternalComm::Calc, &extComm));
-	LoopFunc loop_mpc("mpc_loop", 0.010001f,2, boost::bind(&ExternalComm::HighLevel, &extComm));
-	LoopFunc loop_imu("imu_loop", extComm.LLdt,4, boost::bind(&ExternalComm::getIMMUdata, &extComm));
-
-    extComm.udpComp.InitCmdData(extComm.cmd);
+    extComm.loop_calc(extComm.lowCmdWriteThreadPtr, "calc_loop", extComm.LLdt, 0, std::bind(&ExternalComm::Calc, &extComm));
+    extComm.loop_mpc(extComm.lowCmdWriteThreadPtr,  "mpc_loop",  0.010001f,    2, std::bind(&ExternalComm::HighLevel, &extComm));
+    extComm.loop_imu(extComm.lowCmdWriteThreadPtr,  "imu_loop",  extComm.LLdt, 4, std::bind(&ExternalComm::getIMMUdata, &extComm));
+    // extComm.udpComp.InitCmdData(extComm.cmd);
 	
-	loop_mpc.start();
-	sleep(1.0);
-	loop_calc.start();
-    sleep(1.0);
-	loop_imu.start();
 
     while ( (extComm.stop==0) ){
 		sleep(0.1);
