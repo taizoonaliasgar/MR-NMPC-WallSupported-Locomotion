@@ -608,10 +608,14 @@ void ExternalComm::Calc(){
 				cmd.motorCmd[i].dq = loco_obj->ll->dq(i + 6);
 
 				cmd.motorCmd[i].Kp = 10;
-				cmd.motorCmd[i].Kd = 8;
-				if(beginPose==true){
+				if(i<6){
+					cmd.motorCmd[i].Kd = 2;
+				}else{
+					cmd.motorCmd[i].Kd = 8;
+				}
+				//if(beginPose==true){
 					for(int i=0; i<4; ++i){
-						if(contactIndex[i]==0){
+						if(LLData.ind_LL[i]==0){
 			//							cmd.motorCmd[i].tau = 0;
 							cmd.motorCmd[3*i].Kp = 20;
 							cmd.motorCmd[3*i+1].Kp = 20;
@@ -622,7 +626,7 @@ void ExternalComm::Calc(){
 							cmd.motorCmd[3*i+2].Kd = 1;  
 						}
 					}	
-				}
+				//}
 			}
 			
 			// if(motiontime>switchtime*ctrlHz){
@@ -812,8 +816,8 @@ void ExternalComm::getIMMUdata(){//(mip::Interface& device){
 		scaled_acc(1) = this->filter_comp_accel.accel[1];
 		scaled_acc(2) = this->filter_comp_accel.accel[2];
 		IMUData.comp_angular_rate[0] = this->filter_comp_angular_rate.gyro[0];
-        IMUData.comp_angular_rate[1] = -this->filter_comp_angular_rate.gyro[1];
-        IMUData.comp_angular_rate[2] = -this->filter_comp_angular_rate.gyro[2]; 
+        IMUData.comp_angular_rate[1] = this->filter_comp_angular_rate.gyro[1];
+        IMUData.comp_angular_rate[2] = this->filter_comp_angular_rate.gyro[2]; 
 		for(size_t i = 0; i < 3; i++){
 			for (size_t j = 0; j < 3; j++)
 			{
