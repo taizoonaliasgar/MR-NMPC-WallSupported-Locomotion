@@ -611,7 +611,7 @@ void ExternalComm::Calc(){
 				if(i<6){
 					cmd.motorCmd[i].Kd = 2;
 				}else{
-					cmd.motorCmd[i].Kd = 8;
+					cmd.motorCmd[i].Kd = 4;
 				}
 				//if(beginPose==true){
 					for(int i=0; i<4; ++i){
