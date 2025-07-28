@@ -607,11 +607,11 @@ void ExternalComm::Calc(){
 				cmd.motorCmd[i].q  = loco_obj->ll->q(i + 6);
 				cmd.motorCmd[i].dq = loco_obj->ll->dq(i + 6);
 
-				cmd.motorCmd[i].Kp = 6;
+				cmd.motorCmd[i].Kp = 10;
 				if(i<6){
-					cmd.motorCmd[i].Kd = 1;
-				}else{
 					cmd.motorCmd[i].Kd = 2;
+				}else{
+					cmd.motorCmd[i].Kd = 4;
 				}
 				//if(beginPose==true){
 					for(int i=0; i<4; ++i){
