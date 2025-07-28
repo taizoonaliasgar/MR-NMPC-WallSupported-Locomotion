@@ -1468,7 +1468,7 @@ void SRBNMPC::planner_MT(size_t controlTick, double q[18], double dq[18], Eigen:
     // std::cout << NMPCsolvetime << std::endl;
     // std::cout << duration3.count() << std::endl;
 
-    mpcdataLog(Eigen::Matrix<double, 16, 1>::Zero(), fDes.block(0,0,12,1), controlMPC_MT, Eigen::Map<Eigen::Matrix<double, 12, 1>>(foot_position.data()));
+    // mpcdataLog(Eigen::Matrix<double, 16, 1>::Zero(), fDes.block(0,0,12,1), controlMPC_MT, Eigen::Map<Eigen::Matrix<double, 12, 1>>(foot_position.data()));
 }
 
 int* SRBNMPC::returnConInd(size_t controlTick){
