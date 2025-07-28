@@ -215,7 +215,7 @@ public:
     int rearweight_est = 4;
     double yzdot_thresh = 0.3;
     double xdot_thresh = 0.3;
-    double yzdot_thresh2 = 0.35;
+    double yzdot_thresh2 = 0.25;
     double xdot_thresh2 = 0.2;
 
 	// Eigen::Matrix<double,3,1> eigen_eul = Eigen::MatrixXd::Zero(3,1);
@@ -617,9 +617,9 @@ void ExternalComm::Calc(){
 					for(int i=0; i<4; ++i){
 						if(LLData.ind_LL[i]==0){
 			//							cmd.motorCmd[i].tau = 0;
-							cmd.motorCmd[3*i].Kp = 20;
-							cmd.motorCmd[3*i+1].Kp = 20;
-							cmd.motorCmd[3*i+2].Kp = 20;
+							cmd.motorCmd[3*i].Kp = 12;
+							cmd.motorCmd[3*i+1].Kp = 12;
+							cmd.motorCmd[3*i+2].Kp = 12;
 
 							cmd.motorCmd[3*i].Kd = 1;
 							cmd.motorCmd[3*i+1].Kd = 1;
