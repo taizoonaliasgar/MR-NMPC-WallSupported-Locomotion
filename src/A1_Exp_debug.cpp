@@ -215,8 +215,8 @@ public:
     int rearweight_est = 4;
     double yzdot_thresh = 0.3;
     double xdot_thresh = 0.3;
-    double yzdot_thresh2 = 0.25;
-    double xdot_thresh2 = 0.2;
+    double yzdot_thresh2 = 0.35;
+    double xdot_thresh2 = 0.4;
 
 	// Eigen::Matrix<double,3,1> eigen_eul = Eigen::MatrixXd::Zero(3,1);
 	
