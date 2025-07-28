@@ -876,16 +876,16 @@ Eigen::Matrix<double,33,1> SRBNMPC::getNMPCsol2(int controlMPC){
 
 }
 
-void SRBNMPC::mpcdataLog(Eigen::Matrix<double,16,1> q0, Eigen::Matrix<double,12,1> force, size_t tick, Eigen::Matrix<double, 12, 1> p_foot){//casadi::DM X_prev,(Eigen::Matrix<double,12,1> &q0, size_t tick){
-      
-    file[0] << tick << "\t" << q0(0) << "\t" << q0(1) << "\t" 
-                << q0(2) << "\t" << q0(3) << "\t" 
-                << q0(4) << "\t" << q0(5) << "\t" 
-                << q0(6) << "\t" << q0(7) << "\t" 
-                << q0(8) << "\t" << q0(9) << "\t" 
-                << q0(10) << "\t" << q0(11) << "\t"
-                << q0(12) << "\t" << q0(13) << "\t" 
-                << q0(14) << "\t" << q0(15) <<std::endl;
+void SRBNMPC::mpcdataLog(Eigen::Matrix<double, 16, 1> q0, Eigen::Matrix<double,12,1> force, size_t tick, Eigen::Matrix<double, 12, 1> p_foot){//casadi::DM X_prev,(Eigen::Matrix<double,12,1> &q0, size_t tick){
+
+    file[0] << tick << "\t" << q0_MT(0) << "\t" << q0_MT(1) << "\t"
+                << q0_MT(2) << "\t" << q0_MT(3) << "\t"
+                << q0_MT(4) << "\t" << q0_MT(5) << "\t"
+                << q0_MT(6) << "\t" << q0_MT(7) << "\t"
+                << q0_MT(8) << "\t" << q0_MT(9) << "\t"
+                << q0_MT(10) << "\t" << q0_MT(11) << "\t"
+                << q0_MT(12) << "\t" << q0_MT(13) << "\t" 
+                << q0_MT(14) << "\t" << q0_MT(15) << std::endl;
 
       
     file[1] << force(0) << "\t" << force(1) << "\t" 
@@ -1398,7 +1398,7 @@ void SRBNMPC::planner_MT(size_t controlTick, double q[18], double dq[18], Eigen:
     auto start = std::chrono::high_resolution_clock::now();
     //Eigen::Matrix<double,16,1> q0 = Eigen::Matrix<double,16,1>::Zero();
     // if(controlTick == 32000){letsgo();}
-    controlMPC_MT = std::floor(controlTick/10); 
+    controlMPC_MT = std::floor((controlTick-21995)/10); 
     if(controlMPC_MT == 3500){letsgo();}
     for(int i = 0; i<3; i++){
         q0_MT(i) = q[i];
@@ -1467,8 +1467,8 @@ void SRBNMPC::planner_MT(size_t controlTick, double q[18], double dq[18], Eigen:
     // std::cout << duration1.count() << "\t" << controlTick << std::endl;
     // std::cout << NMPCsolvetime << std::endl;
     // std::cout << duration3.count() << std::endl;
-            
-    //mpcdataLog(q0, fDes.block(0,0,12,1), controlMPC, Eigen::Map<Eigen::Matrix<double, 12, 1>>(foot_position.data()));
+
+    mpcdataLog(Eigen::Matrix<double, 16, 1>::Zero(), fDes.block(0,0,12,1), controlMPC_MT, Eigen::Map<Eigen::Matrix<double, 12, 1>>(foot_position.data()));
 }
 
 int* SRBNMPC::returnConInd(size_t controlTick){
@@ -1485,7 +1485,7 @@ int* SRBNMPC::returnConInd(size_t controlTick){
 }
 
 int* SRBNMPC::returnConInd30(size_t controlTick){
-    int controlMPC = std::floor(controlTick/10);
+    int controlMPC = std::floor((controlTick-21995)/10);
     static int conInd[5] = {0,0,0,0,0};
     
     int conmark = controlMPC%60;
