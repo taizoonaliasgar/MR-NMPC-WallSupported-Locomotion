@@ -215,8 +215,8 @@ public:
     int rearweight_est = 4;
     double yzdot_thresh = 0.3;
     double xdot_thresh = 0.3;
-    double yzdot_thresh2 = 0.8;
-    double xdot_thresh2 = 0.5;
+    double yzdot_thresh2 = 0.35;
+    double xdot_thresh2 = 0.2;
 
 	// Eigen::Matrix<double,3,1> eigen_eul = Eigen::MatrixXd::Zero(3,1);
 	
@@ -430,7 +430,7 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
 void ExternalComm::HighLevel(){
 
     updateDataExp(GET_DATA, HL_DATA, &HLData);
-    if(HLData.control_Tick > switchtime*1000+2999){//} && HLData.control_Tick%10==0){ // Settle down
+    if(HLData.control_Tick > switchtime*1000+1999){//} && HLData.control_Tick%10==0){ // Settle down
         auto start = std::chrono::high_resolution_clock::now();
         nmpc_obj->planner_MT(HLData.control_Tick, HLData.q, HLData.dq, HLData.toePos, HLData.QPforce);
         HLData.comDes= nmpc_obj->returncomDes();
