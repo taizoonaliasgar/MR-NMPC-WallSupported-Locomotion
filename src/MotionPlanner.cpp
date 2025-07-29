@@ -428,6 +428,9 @@ void MotionPlanner::planTraj(const StateInfo *state, const KinematicsInfo *kin, 
             traj.comDes.block(9,0,3,1) = Eigen::MatrixXd::Zero(3,1);//opt_HLstate.block(9,0,3,1);
             traj.comDes(7) = 0.35;
         }
+        if(ctrlTick>=33000){ 
+            traj.comDes(1)=0.0;
+        }
     
     }else if(gait == STANDUP){
         //shiftCoM(state->q(0), state->q(1), state->q(2),0.0);
