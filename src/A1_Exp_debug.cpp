@@ -546,6 +546,10 @@ void ExternalComm::Calc(){
         kinestimatorrr(q,dq,LLData.ind_LL,rotE);
     }
 
+	if(motiontime>=35000){
+		q[2]=0.5;
+	}
+
 
 	// std::cout << "[LL] Motiontime: " << motiontime << std::endl;
 	// ===================================================== //
