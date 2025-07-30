@@ -87,7 +87,7 @@ private:
 
 public:
 		// ExternalComm() : udpComp0(8082, "192.168.123.10", 8007, sizeof(LowCmd), sizeof(LowState)){
-		ExternalComm() : udpComp(LOWLEVEL), velocity_filter(0.005, 0.01, 0.1){
+		ExternalComm() : udpComp(LOWLEVEL), velocity_filter(0.005, 0.01, 0.1), safe(LeggedType::A1){
 
             fid = fopen("/home/taizoon/raisimEnv/Workspace/FootstepPlanner/stateData_1.csv", "w");
             
@@ -151,7 +151,7 @@ public:
 		csvFile.close();
         
 	}
-
+	Safety safe;
 	// main thread execution functions
 	void Calc();
 	void HighLevel();
@@ -175,6 +175,7 @@ public:
 	double q[18] = {0.0};
 	double dq[18] = {0.0};
 	double tauEst[12] = {0.0};
+	double motorTemp[12] = {0.0};
 
 	FiltStruct_d* jointfilter  = (FilterStructure_d*)malloc(sizeof(FilterStructure_d));
 	FiltStruct_f* angfilter    = (FilterStructure_f*)malloc(sizeof(FilterStructure_f));
@@ -495,6 +496,7 @@ void ExternalComm::Calc(){
 		q[i+6] = state.motorState[i].q;
 		dq[i+6] = state.motorState[i].dq;
 		tauEst[i] = state.motorState[i].tauEst;
+		motorTemp[i] = state.motorState[i].temperature;
 	}
 	discrete_butter_d(jointfilter,&dq[6]);
 
@@ -514,7 +516,11 @@ void ExternalComm::Calc(){
 	csvFile << motiontime << "," << tauEst[0] << "," << tauEst[1] << "," << tauEst[2] << ","
 									<< tauEst[3] << "," << tauEst[4] << "," << tauEst[5] << ","
 										<< tauEst[6] << "," << tauEst[7] << "," << tauEst[8] << ","
-											<< tauEst[9] << "," << tauEst[10] << "," << tauEst[11] << "\n";
+											<< tauEst[9] << "," << tauEst[10] << "," << tauEst[11] << ","
+											<< motorTemp[0] << "," << motorTemp[1] << "," << motorTemp[2] << ","
+											<< motorTemp[3] << "," << motorTemp[4] << "," << motorTemp[5] << ","
+											<< motorTemp[6] << "," << motorTemp[7] << "," << motorTemp[8] << ","
+											<< motorTemp[9] << "," << motorTemp[10] << "," << motorTemp[11] << "\n";
 
 	// quat_to_XYZ(state.imu.quaternion[0],state.imu.quaternion[1],state.imu.quaternion[2],state.imu.quaternion[3],
 	//             q[3],q[4],q[5]);
@@ -613,7 +619,7 @@ void ExternalComm::Calc(){
 
 				cmd.motorCmd[i].Kp = 10;
 				if(i<6){
-					cmd.motorCmd[i].Kd = 2;
+					cmd.motorCmd[i].Kd = 4;
 				}else{
 					cmd.motorCmd[i].Kd = 4;
 				}
@@ -679,6 +685,7 @@ void ExternalComm::Calc(){
     }
 
 	motiontime += 1;
+	// safe.PowerProtect(cmd, state, 9);
     udpComp.SetSend(cmd);
     udpComp.Send();
 
