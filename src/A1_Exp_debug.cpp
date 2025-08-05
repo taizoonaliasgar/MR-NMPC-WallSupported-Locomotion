@@ -87,7 +87,7 @@ private:
 
 public:
 		// ExternalComm() : udpComp0(8082, "192.168.123.10", 8007, sizeof(LowCmd), sizeof(LowState)){
-		ExternalComm() : udpComp(LOWLEVEL), velocity_filter(0.005, 0.01, 0.1), safe(LeggedType::A1){
+		ExternalComm() : udpComp(LOWLEVEL), velocity_filter(0.005, 0.0001, 0.01), safe(LeggedType::A1){
 
             fid = fopen("/home/taizoon/raisimEnv/Workspace/FootstepPlanner/stateData_1.csv", "w");
             
@@ -392,9 +392,9 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
 	    COM_vel_e[0] /= numContact;
 	    COM_vel_e[1] /= numContact;
 	    COM_vel_e[2] /= numContact;
-		// if(ctrlTick > 33999){
+		if(ctrlTick > 29999){
 			velocity_filter.stepExp(acc_wFrame, COM_vel_e,ctrlTick);
-		// }
+		}
 
     }else{
         Eigen::Matrix<double,3,1> dq_temp = {dq[3],dq[4],dq[5]};
