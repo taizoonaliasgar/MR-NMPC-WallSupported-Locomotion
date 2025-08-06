@@ -594,8 +594,8 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kpGainx = 100;
         kpGainy = 100;
         kdGainx = 10;
-        kdGainy = 2;
-        kdGainYaw = 10;
+        kdGainy = 5;
+        // kdGainYaw = 10;
         // KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
         // KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
     
@@ -626,7 +626,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         KP(1,1) = kpGainy;
         KD(0,0) = kdGainx;
         KD(1,1) = kdGainy;
-        KD(5,5) = kdGainYaw;
+        // KD(5,5) = kdGainYaw;
 
         if(con->cnt<4){
             KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kpGainleg*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
