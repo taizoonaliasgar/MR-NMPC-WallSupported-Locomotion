@@ -554,6 +554,7 @@ void ExternalComm::Calc(){
 
 	if(motiontime>=35000){
 		q[2]=0.5;
+		// dq[2]=0.0;
 	}
 
 
