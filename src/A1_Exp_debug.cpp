@@ -635,10 +635,12 @@ void ExternalComm::Calc(){
 							cmd.motorCmd[3*i].Kd = 1;
 							cmd.motorCmd[3*i+1].Kd = 1;
 							cmd.motorCmd[3*i+2].Kd = 1;  
+							
+							if(i>1){cmd.motorCmd[3*i].Kp = 20;}
+								
 						}
 					}
-					// cmd.motorCmd[6].Kp = 20;
-					// cmd.motorCmd[9].Kp = 20;	
+					
 				//}
 			}
 			
