@@ -585,7 +585,19 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     Eigen::MatrixXd KP = Eigen::MatrixXd::Zero(outDim,outDim);
     Eigen::MatrixXd KD = Eigen::MatrixXd::Zero(outDim,outDim);
 
-    if(uprighty){
+    if(MPCgains){
+
+        kpGain = 700;
+        kpGainleg = 700;
+        kpGainx = 700;
+        kpGainy = 700;
+
+        kdGain = 40;
+        kdGainleg = 40;
+        kdGainx = 40;
+        kdGainy = 40;
+
+    }else if(uprighty){
         kpGain = 400;
         kpGainleg = 400;
         kdGain = 20;
