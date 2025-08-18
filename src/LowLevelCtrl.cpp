@@ -579,6 +579,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     double kpGainleg = params->kp; 
     double kpGainx = params->kp; 
     double kpGainy = params->kp; 
+    double kpGaino = params->kp; 
     double kdGainx = params->kd; 
     double kdGainy = params->kd; 
     double kdGainw = params->kd; 
@@ -592,12 +593,13 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kpGainleg = 600;
         kpGainx = 600;
         kpGainy = 600;
+        kpGaino = 600;
 
         kdGain = 20;
         kdGainleg = 20;
         kdGainx = 20;
         kdGainy = 20;
-        kdGainw = 5;
+        kdGainw = 20;
 
     }else if(uprighty){
         kpGain = 400;
@@ -606,6 +608,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kdGainleg = 15;
         kpGainx = 100;
         kpGainy = 100;
+        kpGaino = 400;
         kdGainx = 10;
         kdGainy = 10;
         // KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
@@ -619,8 +622,9 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     else if(upKp){
         kpGain = 400;
         kpGainleg = 400;
-        kpGainx =400;
+        kpGainx = 400;
         kpGainy = 400;
+        kpGaino = 400;
         // KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
         // KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
     
@@ -633,12 +637,15 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         
         KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
         KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
+        
+        KP.block(3,3,3,3) = kpGaino*Eigen::MatrixXd::Identity(3,3);
         KD.block(3,3,3,3) = kdGainw*Eigen::MatrixXd::Identity(3,3);
     
         KP(0,0) = kpGainx;
         KP(1,1) = kpGainy;
         KD(0,0) = kdGainx;
         KD(1,1) = kdGainy;
+        
 
         if(con->cnt<4){
             KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kpGainleg*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
