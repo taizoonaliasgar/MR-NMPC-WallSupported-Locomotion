@@ -243,10 +243,10 @@ void LowLevelCtrl::calcTorquewalk(const StateInfo *state, const DynInf *dyn, con
 
     // if(uprighty2){
     //     for(int i=2; i<4; ++i){
-    //         // if (con->ind[i]==1){
+    //         if (con->ind[i]==1){
     //             tau[6+3*i] = -40*state->q(6+3*i,0)-2*state->dq(6+3*i,0);//(ll.q.block(6+3*i,0,3,1)-state->q.block(6+3*i,0,3,1));
     //                                    //+ 1*(ll.dq.block(6+3*i,0,3,1)-state->dq.block(6+3*i,0,3,1));
-    //         // }
+    //         }
     //     }
     // }
             
@@ -593,7 +593,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kpGainleg = 600;
         kpGainx = 600;
         kpGainy = 600;
-        kpGaino = 600;
+        kpGaino = 400;
 
         kdGain = 20;
         kdGainleg = 20;
@@ -637,7 +637,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         
         KP.block(0,0,6,6) = kpGain*Eigen::MatrixXd::Identity(6,6);
         KD.block(0,0,6,6) = kdGain*Eigen::MatrixXd::Identity(6,6);
-        
+
         KP.block(3,3,3,3) = kpGaino*Eigen::MatrixXd::Identity(3,3);
         KD.block(3,3,3,3) = kdGainw*Eigen::MatrixXd::Identity(3,3);
     
