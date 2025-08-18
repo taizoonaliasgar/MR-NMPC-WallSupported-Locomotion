@@ -420,7 +420,7 @@ void MotionPlanner::planTraj(const StateInfo *state, const KinematicsInfo *kin, 
             traj.comDes.block(0,0,2,1) << state->q.block(0,0,2,1) + opt_HLstate.block(3,0,2,1)*dt;
             traj.comDes.block(3,0,3,1) = opt_HLstate.block(3,0,3,1);
             traj.comDes.block(6,0,3,1) = opt_HLstate.block(6,0,3,1);
-            traj.comDes.block(9,0,3,1) = opt_HLstate.block(9,0,3,1);
+            traj.comDes.block(9,0,3,1) = 0*opt_HLstate.block(9,0,3,1);
         }else{
             traj.comDes.block(0,0,2,1) << state->q.block(0,0,2,1);//state->q(0);// + opt_HLstate.block(3,0,3,1)*dt;
             traj.comDes.block(3,0,3,1) = Eigen::MatrixXd::Zero(3,1);//opt_HLstate.block(3,0,3,1);
