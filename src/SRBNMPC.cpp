@@ -35,7 +35,7 @@ SRBNMPC::SRBNMPC(int argc, char *argv[], int numRobots, int id) : Parameters(arg
     // Jinvstand = Rstand*Jinv*Rstand.transpose();
     Rstand << 0.342,0,-0.94,  0,1,0,  0.94,0,0.342;
     Jstand = J;
-    Jinvstand = Jinv*Rstand;
+    Jinvstand = Jinv;
 
     std::copy(Jstand.data(), Jstand.data() + Jstand.size(), Jstandcasadi.ptr());
     std::copy(Jinvstand.data(), Jinvstand.data() + Jinvstand.size(), Jinvcasadi.ptr());
@@ -132,7 +132,7 @@ void SRBNMPC::generator(){
     //casadi::Function solver = casadi::nlpsol("solver", "ipopt", {{"x", x}, {"f", f}, {"g", g}, {"p", p}});//, opts);
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", nlp_prob, opts);
     // file name
-    std::string file_name = "take2_w0p2_ro_0p05_16b";//"take2_1";
+    std::string file_name = "take2_w0p2_ro_0p05_17b";//"take2_1";
     // code predix
     std::string prefix_code = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/";//std::filesystem::current_path().string() + "/";
 
