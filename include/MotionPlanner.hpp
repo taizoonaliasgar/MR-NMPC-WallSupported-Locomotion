@@ -60,7 +60,7 @@ public:
     void movefootk(size_t movetime, size_t wallsteps, bool maxsteps);
     //Set x pose
     void setfixedx(double x_fixed_){x_fixed = x_fixed_;};
-    void getthetadot(Eigen::Matrix<double,12,1> &q_opt);
+    Eigen::Matrix<double,3,1> getthetadot(Eigen::Matrix<double,6,1> q_opt);
 
 protected:
     inline void setStepLen(double x, double y, double z){
