@@ -288,15 +288,11 @@ casadi::SX SRBNMPC::UpdateCostN(casadi::SX x, casadi::SX x_des){
     
     
     Q.setZero();
-    // Q.block(0,0,3,3).diagonal() <<  1e4,5e5,8e5;//5e4//1e4//mpc_params.qpx, mpc_params.qpy, mpc_params.qpz;
-    // Q.block(3,3,3,3).diagonal() <<  1e5,1e4,1e4;//4e5//5e4//mpc_params.qvx, mpc_params.qvy, mpc_params.qvz;
-    // Q.block(6,6,3,3).diagonal() <<  1e5,8e5,1e5;//3e4//mpc_params.qrr, mpc_params.qrp, mpc_params.qry;//Yaw:3e3
-    // Q.block(9,9,3,3).diagonal() <<  5e3,5e3,5e3;//1//1e2//mpc_params.qwr, mpc_params.qwp, mpc_params.qwy;
+    Q.block(0,0,3,3).diagonal() <<  1e4,5e6,8e5;//5e4//1e4//mpc_params.qpx, mpc_params.qpy, mpc_params.qpz;
+    Q.block(3,3,3,3).diagonal() <<  1e5,1e4,1e4;//4e5//5e4//mpc_params.qvx, mpc_params.qvy, mpc_params.qvz;
+    Q.block(6,6,3,3).diagonal() <<  1e5,8e5,1e5;//3e4//mpc_params.qrr, mpc_params.qrp, mpc_params.qry;//Yaw:3e3
+    Q.block(9,9,3,3).diagonal() <<  5e3,5e3,5e3;//1//1e2//mpc_params.qwr, mpc_params.qwp, mpc_params.qwy;
 
-    Q.block(0,0,3,3).diagonal() <<  1e6,1e6,16e6;//5e4//1e4//mpc_params.qpx, mpc_params.qpy, mpc_params.qpz;
-    Q.block(3,3,3,3).diagonal() <<  1e5,1e5,1e5;//4e5//5e4//mpc_params.qvx, mpc_params.qvy, mpc_params.qvz;
-    Q.block(6,6,3,3).diagonal() <<  1e6,1e6,1e6;//3e4//mpc_params.qrr, mpc_params.qrp, mpc_params.qry;
-    Q.block(9,9,3,3).diagonal() <<  1e4,1e4,1e4;
     Q.block(12,12,4,4).diagonal() <<  1000,1000,1000,1000;//1e-2//1e3//1e5,1e5,1e5,1e5;
     //repdiag(Q,Q_rep,HORIZ+1);
     
