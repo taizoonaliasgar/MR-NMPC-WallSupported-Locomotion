@@ -742,7 +742,7 @@ void VirtCon::updateVirtualConstraintssetfoot(const StateInfo *state, const KinI
                         //               2*params->swingHeight, to+0.005, to+0.005, to};
                         // double az[8]= {traj->toeInit(2,i), 1*params->swingHeight+step[2], 1*params->swingHeight+step[2], 
                         //        1*params->swingHeight+step[2], 1*params->swingHeight+step[2], 1*params->swingHeight+step[2],1*params->swingHeight+step[2], traj->toeInit(2,i)+step[2]};
-                        double az[8]= {traj->toeInit(2,i), 0.02, 0.02, 0.02,0.02,0.02,0.02, 0.03};//traj->toeInit(2,i)+step[2]};       
+                        double az[8]= {traj->toeInit(2,i), 0.02, 0.02, 0.02,0.02,0.02,0.03, 0.03};//traj->toeInit(2,i)+step[2]};       
                         calcBezierAll(n, az, phaseVar, tz);
                     }
                 }
