@@ -255,7 +255,7 @@ private:
     public:
     casadi::DM previousp = casadi::DM::zeros(NFS*(HORIZ+1)+NFI*(HORIZ)+4*(HORIZ+2),1);
     casadi::DM optstephll = casadi::DM::zeros(4,1);
-    casadi::DM front_off = 0.15;
+    casadi::DM front_off = 0.25;
     casadi::DM rear_off = -0.05; 
     casadi::DM pitch_ref = 0;
     int Raibflag = 0;
@@ -277,7 +277,7 @@ private:
     bool starttrotting = false;
 
     //Hardware
-    std::string lib_name_exp = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/Go2_w0p2_ro_0p05_42b.so";
+    std::string lib_name_exp = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/Go2_w0p2_ro_0p05_40b.so";
     casadi::Dict opts = {{"ipopt.print_level", 1}, {"print_time", 0},{"ipopt.max_iter", 12},{"ipopt.acceptable_tol", 1e-2},{"ipopt.acceptable_obj_change_tol", 1e-2}};
     casadi::Function solver_exp = casadi::nlpsol("solver", "ipopt", lib_name_exp, opts);
 

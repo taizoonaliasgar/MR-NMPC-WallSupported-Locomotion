@@ -37,7 +37,7 @@ LowLevelCtrl::LowLevelCtrl(){
 
     c_int exitflag = osqp_setup(&work, data, settings);
     #endif
-    dFMultiplier(0,0)=100;dFMultiplier(1,1)=100;dFMultiplier(2,2)=300;
+    dFMultiplier(0,0)=1e7;dFMultiplier(1,1)=1e7;dFMultiplier(2,2)=3e7;
 }
 
 LowLevelCtrl::~LowLevelCtrl(){
@@ -551,7 +551,11 @@ void LowLevelCtrl::costwalk(LLP *params, const VCInfo *vc, const ConInf *con, si
     P_QP(conDim+6,conDim+6) = 0.00000000000001*params->tauPen;
     P_QP(conDim+9,conDim+9) = 0.00000000000001*params->tauPen;
     P_QP.block(conDim+TOTAL_IN,conDim+TOTAL_IN,outDim,outDim) = params->auxPen*Eigen::MatrixXd::Identity(outDim,outDim);
-    if (useCLF){
+    
+    // if(MPCgains){
+    //    P_QP(conDim+TOTAL_IN+2,conDim+TOTAL_IN+2) = 1000;//params->auxPen*Eigen::MatrixXd::Identity(outDim,outDim);
+    // }
+       if (useCLF){
         P_QP(numDec-1, numDec-1) = params->clfPen;
     }
     /*std::cout << "params->tauPen" << "=" << params->tauPen << std::endl;
@@ -592,6 +596,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     double kpGainz = params->kp; 
     double kdGainx = params->kd; 
     double kdGainy = params->kd; 
+    double kdGainz = params->kd; 
 
      if(MPCgains){
         kpGain = 400; 
@@ -602,6 +607,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kdGain = 20;
         kdGainx = 20;
         kdGainy = 20;
+        kdGainz = 20;
     }
     else if(uprighty){
         kpGain = 400;
@@ -612,6 +618,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         
         kdGainx = 10;
         kdGainy = 10;
+        kdGainz = 10;
     }
     else if(upKp){
         kpGain = 400;
@@ -638,6 +645,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     KP(2,2) = kpGainz;
     KD(0,0) = kdGainx;
     KD(1,1) = kdGainy;
+    KD(2,2) = kdGainz;
     
     if(con->cnt<4){
         KP.block(6,6,3*(4-con->cnt),3*(4-con->cnt)) = kpGain*Eigen::MatrixXd::Identity(3*(4-con->cnt),3*(4-con->cnt));
