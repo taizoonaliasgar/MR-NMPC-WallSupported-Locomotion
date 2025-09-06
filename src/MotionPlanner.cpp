@@ -444,7 +444,7 @@ void MotionPlanner::planTraj(const StateInfo *state, const KinematicsInfo *kin, 
             // traj.comDes(1) = 0.0;
             // traj.comDes(2) = opt_HLstate(2);
             traj.comDes(7) = 0.35;
-            // traj.comDes(5) = 0.0;
+            traj.comDes(5) = 0.0;
         }
         else{
             traj.comDes.block(0,0,2,1) = state->q.block(0,0,2,1);//state->q(0);// + opt_HLstate.block(3,0,3,1)*dt;
