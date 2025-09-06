@@ -579,7 +579,7 @@ void LowLevelCtrl::costwalk(LLP *params, const VCInfo *vc, const ConInf *con, si
         //     dFGainMPC.block(3*j,3*j,3,3) = dFGainNew*Eigen::MatrixXd::Identity(3,3);
         // }
         
-        c_QP.block(0,0,conDim,1) = -dFGainMPCn*Fd;
+        c_QP.block(0,0,conDim,1) = -dFGainNew(0,0)*Fd;//-dFGainMPCn*Fd;
     }else{
         c_QP.block(0,0,conDim,1) = -Fd*dFGain;
     }
