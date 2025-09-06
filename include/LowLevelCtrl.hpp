@@ -106,6 +106,7 @@ private:
     bool MPCgains = false;
     Eigen::Matrix<double,3,3> dFGainNew=Eigen::MatrixXd::Identity(3,3);
     Eigen::Matrix<double,3,3> dFMultiplier=Eigen::MatrixXd::Identity(3,3);
+    double dFGainMPCn = 1e7;
 
 };
 

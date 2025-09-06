@@ -573,13 +573,13 @@ void LowLevelCtrl::costwalk(LLP *params, const VCInfo *vc, const ConInf *con, si
     }	
     //std::cout << Fd.transpose() << std::endl;
     if(MPCgains){
-        Eigen::MatrixXd dFGainMPC = Eigen::MatrixXd::Zero(conDim,conDim);
-        for (size_t j = 0; j < con->cnt; j++)
-        {
-            dFGainMPC.block(3*j,3*j,3,3) = dFGainNew*Eigen::MatrixXd::Identity(3,3);
-        }
+        // Eigen::MatrixXd dFGainMPC = Eigen::MatrixXd::Zero(conDim,conDim);
+        // for (size_t j = 0; j < con->cnt; j++)
+        // {
+        //     dFGainMPC.block(3*j,3*j,3,3) = dFGainNew*Eigen::MatrixXd::Identity(3,3);
+        // }
         
-        c_QP.block(0,0,conDim,1) = -dFGainMPC*Fd;
+        c_QP.block(0,0,conDim,1) = -dFGainMPCn*Fd;
     }else{
         c_QP.block(0,0,conDim,1) = -Fd*dFGain;
     }

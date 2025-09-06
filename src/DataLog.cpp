@@ -77,10 +77,6 @@ void DataLog::writeData(const StateInfo *state, const VCInfo *vc, const ContactI
             << opt_HLstate(3) << "," << opt_HLstate(4) << "," << opt_HLstate(5) << "," 
             << opt_HLstate(6) << "," << opt_HLstate(7) << "," << opt_HLstate(8) << "," 
             << opt_HLstate(9) << "," << opt_HLstate(10) << "," << opt_HLstate(11) << ","
-            /*<< vc->fDes(0)<< "," << vc->fDes(1)  << "," << vc->fDes(2)  << ","
-            << vc->fDes(3)<< "," << vc->fDes(4)  << "," << vc->fDes(5)  << ","
-            << vc->fDes(6)<< "," << vc->fDes(7)  << "," << vc->fDes(8)  << ","
-            << vc->fDes(9)<< "," << vc->fDes(10) << "," << vc->fDes(11) << ","*/
             << dy_(0) << "," << dy_(1)  << "," << dy_(2)  << ","
             << dy_(3) << "," << dy_(4)  << "," << dy_(5)  << ","
             << dy_(6) << "," << dy_(7)  << "," << dy_(8)  << ","
@@ -103,6 +99,10 @@ void DataLog::writeData(const StateInfo *state, const VCInfo *vc, const ContactI
             << locoTick << "," << locoPhase << "," << flightPhaseRL << "," << flightPhaseLR << "," << DDiff << "," << HDiff  << ","
             << NLstep(0) << "," << NLstep(1) << "," << NLstep(2) << "," << NLstep(3) << "," 
             << traj->FRstepLen(0) << "," << traj->FLstepLen(0) << "," << traj->RRstepLen(0) << "," << traj->RLstepLen(0) << "," << NLstep(4) << "," << duration << ","
-            << IMUeuler[0] << "," << IMUeuler[1] << "," << IMUeuler[2] << std::endl;
+            << IMUeuler[0] << "," << IMUeuler[1] << "," << IMUeuler[2] << ","
+            << vc->fDes(0)<< "," << vc->fDes(1)  << "," << vc->fDes(2)  << ","
+            << vc->fDes(3)<< "," << vc->fDes(4)  << "," << vc->fDes(5)  << ","
+            << vc->fDes(6)<< "," << vc->fDes(7)  << "," << vc->fDes(8)  << ","
+            << vc->fDes(9)<< "," << vc->fDes(10) << "," << vc->fDes(11) << std::endl;
     }
 };
