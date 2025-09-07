@@ -35,7 +35,8 @@
 #include "mip/mip_all.hpp"
 #include "microstrain/connections/serial/serial_connection.hpp"
 #include "example_utils.hpp"
-#include "fusedVelocityEstimate.hpp"
+// #include "fusedVelocityEstimate.hpp"
+#include "kalmanfilter.hpp"
 
 #include <chrono>
 #include <thread>
@@ -108,11 +109,16 @@ private:
 
     bool SIMFlag = true;
     std::ofstream csvFile;//("contact_forces.csv");
-    VelocityKalman3D velocity_filter;
+    // VelocityKalman3D velocity_filter;
+    using KF = VelBiasKF<3>;
+	KF kf;
+	Eigen::Vector3d vhat_{Eigen::Vector3d::Zero()};
+    Eigen::Vector3d bhat_{Eigen::Vector3d::Zero()};
+    Eigen::Vector3d prev_acc_world_{Eigen::Vector3d::Zero()};
 
 
 public:
-    ExternalComm(int argc, char* argv[]):velocity_filter(0.001, 1e-2, 2.7e-4)
+    ExternalComm(int argc, char* argv[])//:velocity_filter(0.001, 1e-2, 2.7e-4)
     // : parseBufferSize(1024), 
         // parseBuffer(new uint8_t[parseBufferSize])
     {
@@ -157,15 +163,14 @@ public:
 
         csvFile.open("../data25/kneepose.csv");
 
-        // StandDuration = 10000;
-        // SettlingTime = 8000;
-
-        /********************************************RASIM INIT********************************************** */
-        // const int NUMBER_OF_SIMS = 1;
-        // const float threshold = 0.4;
-        // bool shared_data_backed_up = 0;
-        //raisim::OgreVis *vis = raisim::OgreVis::get();		
-        // std::cout << "Setup filter" << std::endl;	
+        // Kalman Filter
+        Eigen::Matrix<double,3,3> R_meas = 0.02*Eigen::Matrix3d::Identity();
+        R_meas(1,1) = 0.07;
+        kf.settimestep(0.001);
+        kf.setInitial(Eigen::Vector3d::Zero());          // start near zero velocity
+        kf.setAccelVariance(6);                       // avg accel var (m/s^2)^2
+        kf.setMeasurementCovariance(R_meas); // velocity meas var
+        kf.setProcessScales(1.0, 1e-4);	
         
     }	
 
@@ -301,6 +306,7 @@ public:
     // Eigen::Matrix<double,3,3> Rpostmult = Eigen::MatrixXd::Identity(3,3);
     // Rpremult(0,2)=-1;Rpremult(1,1)=-1;Rpremult(2,0)=-1;
     // Rpostmult(0,0)=1;Rpostmult(1,1)=-1;Rpostmult(2,2)=-1;
+    void stepVelocityKF(const Eigen::Vector3d& a_world, double COM_vel_e[3], size_t ctrlTick);
 };
 
 void ExternalComm::looper(ThreadPtr& thread, std::string name, float dt_freq, int cpu_id, std::function<void()> func){
@@ -580,7 +586,7 @@ void ExternalComm::HighLevel(){
         HLData.comDes= nmpc_obj->returncomDes();
         HLData.fDes= nmpc_obj->returnfDes();
         HLData.solvetime = nmpc_obj->returnSolveTime();
-        int* indcon = nmpc_obj->returnConInd30(HLData.control_Tick);
+        int* indcon = nmpc_obj->returnConInd15(HLData.control_Tick);
         HLData.ind[0] = indcon[0];
         HLData.ind[1] = indcon[1];
         HLData.ind[2] = indcon[2];
@@ -774,13 +780,13 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
 	// 	rr_prev[i] = rr_toe[i]; rl_prev[i] = rl_toe[i];		
 	// }
 	// getthetadot(q,dq);
-    int robotdown2=0;
-	
+    
+	numContact = (contact[0]+contact[1])*robotdown + rearweight_est*(contact[2]+contact[3]);
 	
     if(!robotdown){
     // if(ctrlTick>switchtime*1000-1){
             
-        numContact = (contact[0]+contact[1])*robotdown2 + rearweight_est*(contact[2]+contact[3]);
+        
         // Eigen::Matrix<double,3,1> dq_temp = {dq[3],dq[4],dq[5]};
         // getthetadot(q,dq);
         // Eigen::Matrix<double,3,1> dq_temp2 = {dq[3],dq[4],dq[5]};
@@ -791,22 +797,20 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
         // dq[4] = dq_temp[1];
         // dq[5] = dq_temp[2];
         for (int i = 3; i < 18; ++i){
-		    COM_vel_e[0] -= (Jfr_toe_e[3*i+0]*contact[0]*robotdown2 + Jfl_toe_e[3*i+0]*contact[1]*robotdown2 + Jrr_toe_e[3*i+0]*contact[2]*rearweight_est + Jrl_toe_e[3*i+0]*contact[3]*rearweight_est)*dq[i];
-	 	    COM_vel_e[1] -= (Jfr_toe_e[3*i+1]*contact[0]*robotdown2 + Jfl_toe_e[3*i+1]*contact[1]*robotdown2 + Jrr_toe_e[3*i+1]*contact[2]*rearweight_est + Jrl_toe_e[3*i+1]*contact[3]*rearweight_est)*dq[i];
-	 	    COM_vel_e[2] -= (Jfr_toe_e[3*i+2]*contact[0]*robotdown2 + Jfl_toe_e[3*i+2]*contact[1]*robotdown2 + Jrr_toe_e[3*i+2]*contact[2]*rearweight_est + Jrl_toe_e[3*i+2]*contact[3]*rearweight_est)*dq[i];
+		    COM_vel_e[0] -= (Jfr_toe_e[3*i+0]*contact[0]*robotdown + Jfl_toe_e[3*i+0]*contact[1]*robotdown + Jrr_toe_e[3*i+0]*contact[2]*rearweight_est + Jrl_toe_e[3*i+0]*contact[3]*rearweight_est)*dq[i];
+	 	    COM_vel_e[1] -= (Jfr_toe_e[3*i+1]*contact[0]*robotdown + Jfl_toe_e[3*i+1]*contact[1]*robotdown + Jrr_toe_e[3*i+1]*contact[2]*rearweight_est + Jrl_toe_e[3*i+1]*contact[3]*rearweight_est)*dq[i];
+	 	    COM_vel_e[2] -= (Jfr_toe_e[3*i+2]*contact[0]*robotdown + Jfl_toe_e[3*i+2]*contact[1]*robotdown + Jrr_toe_e[3*i+2]*contact[2]*rearweight_est + Jrl_toe_e[3*i+2]*contact[3]*rearweight_est)*dq[i];
         }
 	    COM_vel_e[0] /= numContact;
 	    COM_vel_e[1] /= numContact;
 	    COM_vel_e[2] /= numContact;
 
-        // std::cout << "accel_scaled" << "\t" << acc_bFrame.transpose() << std::endl;
-        // std::cout << "a_world" << "\t" << (R*acc_bFrame).transpose() << std::endl;
+        
         // Eigen::Vector3d a_world = R*acc_bFrame - Eigen::Vector3d(0,0,9.81);
-        // dq_temp = {dq[3],dq[4],dq[5]};
-	    // toBody(&dq[3],dq_temp,R);
+        // if(ctrlTick>19999){
+		// 	stepVelocityKF(acc_wFrame, COM_vel_e, ctrlTick);
+		// }
 
-        // velocity_filter.step(simcounter,acc_bFrame, R, COM_vel_e);
-        // Eigen::Vector3d fused = velocity_filter.getVelocity();
         
         // std::cout << simcounter << "\t" << dq[0] << "\t" << dq[1] << "\t" << dq[2] << "\t" << fused(0) << "\t" << fused(1) << "\t" << fused(2) << "\t"
         //                                     << COM_vel_e[0] << "\t" << COM_vel_e[1] << "\t" << COM_vel_e[2] << std::endl;
@@ -815,7 +819,7 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
         // COM_vel_e[2] = fused(2);
 
     }else{
-        numContact = (contact[0]+contact[1])*robotdown + rearweight_est*(contact[2]+contact[3]);
+        
         
         Eigen::Matrix<double,3,1> dq_temp = {dq[3],dq[4],dq[5]};
         toWorld(&dq[3],dq_temp,R);
@@ -856,6 +860,30 @@ void ExternalComm::getStateEstimatefullll(double q[18], double dq[18], int conta
         dq[1] = COM_vel_e[1] > yzdot_thresh2 ? yzdot_thresh2 : (COM_vel_e[1] < -yzdot_thresh2 ? -yzdot_thresh2 : COM_vel_e[1]);
         dq[2] = COM_vel_e[2] > yzdot_thresh2 ? yzdot_thresh2 : (COM_vel_e[2] < -yzdot_thresh2 ? -yzdot_thresh2 : COM_vel_e[2]); 
     }
+}
+
+void ExternalComm::stepVelocityKF(const Eigen::Vector3d& a_world,   // gravity-compensated, world frame    // measured velocity (same frame)
+                           double COM_vel_e[3],size_t ctrlTick) {
+    // std::lock_guard<std::mutex> lock(update_mutex);  // if called from another thread
+
+    // if (!have_prev_acc_) { have_prev_acc_ = true; }
+
+	Eigen::Vector3d v_meas;
+    // Use a(k-1) with v(k) to mirror MATLAB timing
+	v_meas(0)=COM_vel_e[0];
+	v_meas(1)=COM_vel_e[1];
+	v_meas(2)=COM_vel_e[2];
+    kf.step(prev_acc_world_, v_meas, &vhat_, &bhat_);
+    
+
+	std::cout << ctrlTick << "\t" << prev_acc_world_(0) << "\t" << prev_acc_world_(1) << "\t" << prev_acc_world_(2) << "\t" << v_meas(0) << "\t" 
+							<< v_meas(1) << "\t" << v_meas(2) << "\t" << vhat_.x() << "\t" << vhat_.y() << "\t" << vhat_.z() << std::endl;
+
+    // expose where you need them
+    COM_vel_e[0] = vhat_.x();
+    COM_vel_e[1] = vhat_.y();
+    COM_vel_e[2] = vhat_.z();
+	prev_acc_world_ = a_world;
 }
 
 
@@ -1369,7 +1397,7 @@ int main(int argc, char *argv[]) {
 
     extComm.looper(extComm.simThreadPtr,  "sim_loop",  1.00f, 4, std::bind(&ExternalComm::SimExec, &extComm));
     sleep(1.0);
-    extComm.looper(extComm.mpcThreadPtr,  "mpc_loop",  10.00f, 1, std::bind(&ExternalComm::HighLevel, &extComm));
+    extComm.looper(extComm.mpcThreadPtr,  "mpc_loop",  20.00f, 1, std::bind(&ExternalComm::HighLevel, &extComm));
     sleep(1.0);
     extComm.looper(extComm.calcThreadPtr, "calc_loop", 1.00f, 2, std::bind(&ExternalComm::Calc, &extComm));
     // // sleep(1.0);

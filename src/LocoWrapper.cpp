@@ -270,11 +270,11 @@ void LocoWrapper::calcTau2(const double q[18], const double dq[18], const double
                 //PP->movefoot2(movetime,phaseVar);
                 //}
                 quad->updateSwingMatrices(con->ind,con->cnt);
-                // if(wallstep<1){
-                //     VC->updateVirtualConstraintssetfoot(state, kin, traj, con, gait, phaseVar, &motion_params, ll, flphase,rlphase,false);
-                // }else{
+                if(wallstep<1){
+                    VC->updateVirtualConstraintssetfoot(state, kin, traj, con, gait, phaseVar, &motion_params, ll, flphase,rlphase,false);
+                }else{
                     VC->updateVirtualConstraintssetfoot(state, kin, traj, con, gait, phaseVar, &motion_params, ll, flphase,rlphase,true);
-                // }
+                }
                 LL->calcTorquewalk(state, dyn, kin, vcon, con, &ll_params, Hr, z, Ki);
         
             }else{
@@ -646,8 +646,8 @@ void LocoWrapper::ExpWrapper(const double jpos_est[18], const double jvel_est[18
         if(control_Tick == switchtime*ctrlHz){readytowalk();}//break;}
         if(control_Tick == switchtime*ctrlHz + stepind2_e*(shifttime2+movetime3)){setfinalCoM2(stepind2_e);}//break;}
         if(control_Tick == switchtime*ctrlHz+10*(shifttime2+movetime3)+shifttime2){startwalking();PP->setfixedx(jpos_est[0]);}//break;}
-        if(control_Tick == (switchtime+17)*ctrlHz){LL->MPCWalking();readytoreallywalk();}
-        if(control_Tick == (switchtime+18)*ctrlHz){readytoreallywalk();}
+        if(control_Tick == (switchtime+17)*ctrlHz){LL->MPCWalking();};//readytoreallywalk();}
+        // if(control_Tick == (switchtime+18)*ctrlHz){readytoreallywalk();}
         // if(control_Tick == (switchtime+17)*ctrlHz+20){readytoreallywalk();}
         // if(control_Tick == (switchtime+17)*ctrlHz+920){readytoreallywalk();}
         // if(control_Tick == (switchtime+17)*ctrlHz){readytoreallywalk();}//break;}

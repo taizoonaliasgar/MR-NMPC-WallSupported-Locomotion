@@ -33,7 +33,7 @@ public:
     void setFlightTorque();
     void afterfirststep(){firststeptaken=true;};
     void fullyupright(){uprighty = true;};
-    void keepwalking(){dFGainNew = dFGainNew*dFMultiplier;};
+    void keepwalking(){dFnew = dFnew*10;};
     void enablehipposcntrl(){uprighty2=true;};
     void aftersecondstep(){bothsteptaken=true;};
     //Kp cheating
@@ -104,10 +104,6 @@ private:
     bool bothsteptaken = false;
     bool upKp = false;
     bool MPCgains = false;
-    Eigen::Matrix<double,3,3> dFGainNew=Eigen::MatrixXd::Identity(3,3);
-    Eigen::Matrix<double,3,3> dFMultiplier=Eigen::MatrixXd::Identity(3,3);
-    double dFGainMPCn = 1e7;
-
 };
 
 #endif
