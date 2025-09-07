@@ -137,7 +137,7 @@ void SRBNMPC::generator(){
     //casadi::Function solver = casadi::nlpsol("solver", "ipopt", {{"x", x}, {"f", f}, {"g", g}, {"p", p}});//, opts);
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", nlp_prob, opts);
     // file name
-    std::string file_name = "Go2_w0p2_ro_0p05_42b";//"take2_1";
+    std::string file_name = "Go2_w0p2_ro_0p05_43o";//"take2_1";
     // code predix
     std::string prefix_code = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/";//std::filesystem::current_path().string() + "/";
 
@@ -291,16 +291,16 @@ casadi::SX SRBNMPC::UpdateCostN(casadi::SX x, casadi::SX x_des){
     
     
     Q.setZero();
-    Q.block(0,0,3,3).diagonal() <<  6e6,1e5,8e6;//5e4//1e4//mpc_params.qpx, mpc_params.qpy, mpc_params.qpz;
-    Q.block(3,3,3,3).diagonal() <<  1e4,1e4,1e3;//4e5//5e4//mpc_params.qvx, mpc_params.qvy, mpc_params.qvz;
+    Q.block(0,0,3,3).diagonal() <<  10e6,1e5,8e5;//5e4//1e4//mpc_params.qpx, mpc_params.qpy, mpc_params.qpz;
+    Q.block(3,3,3,3).diagonal() <<  1e5,1e4,1e4;//4e5//5e4//mpc_params.qvx, mpc_params.qvy, mpc_params.qvz;
     Q.block(6,6,3,3).diagonal() <<  8e5,8e5,8e5;//3e4//mpc_params.qrr, mpc_params.qrp, mpc_params.qry;
     //Yaw:3e3
     Q.block(9,9,3,3).diagonal() <<  5e3,5e3,5e3;//1//1e2//mpc_params.qwr, mpc_params.qwp, mpc_params.qwy;
-    Q.block(12,12,4,4).diagonal() <<  1e7,1e7,1e7,1e7;//1e-2//1e3//1e5,1e5,1e5,1e5;
+    Q.block(12,12,4,4).diagonal() <<  8e3,8e3,8e3,8e3;//1e-2//1e3//1e5,1e5,1e5,1e5;
     //repdiag(Q,Q_rep,HORIZ+1);
     
     R_force.setZero();
-    R_force.diagonal() << 1e2,1e2,1e2;//0.01//mpc_params.rx, mpc_params.ry, mpc_params.rz;
+    R_force.diagonal() << 0.01,0.01,0.01;//0.01//mpc_params.rx, mpc_params.ry, mpc_params.rz;
     for(int i=0;i<4;i++){
         if(i<2){
             R.block(3*i,3*i,3,3) = 1*R_force;
@@ -313,7 +313,7 @@ casadi::SX SRBNMPC::UpdateCostN(casadi::SX x, casadi::SX x_des){
     //R = 1e2*R;
     Rv.setZero();
     Rv.diagonal() << 0.01,0.01,0.01,0.01;//1e2,1e2,1e2,1e2;//0.01,0.01,0.01,0.01;
-    Rv = 5e9*Rv;//1e5
+    Rv = 5e7*Rv;//1e5
 
     casadi::DM Qc = casadi::DM::zeros(Q.rows(),Q.cols());
     std::copy(Q.data(), Q.data() + Q.size(), Qc.ptr());
