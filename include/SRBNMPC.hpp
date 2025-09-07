@@ -268,7 +268,7 @@ private:
     Eigen::MatrixXd CoMhistory = Eigen::MatrixXd::Zero(3,deltaT*fitsample+1);
     Eigen::Matrix<double,3,1> v_estimate = Eigen::MatrixXd::Zero(3,1);
 
-    double wall_y =0.2;
+    double wall_y =0.22;
 
     bool first_time_here = true;
 
@@ -277,7 +277,7 @@ private:
     bool starttrotting = false;
 
     //Hardware
-    std::string lib_name_exp = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/Go2_w0p2_ro_0p05_43o.so";
+    std::string lib_name_exp = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/Go2_w0p2_ro_0p05_40b.so";
     casadi::Dict opts = {{"ipopt.print_level", 1}, {"print_time", 0},{"ipopt.max_iter", 12},{"ipopt.acceptable_tol", 1e-2},{"ipopt.acceptable_obj_change_tol", 1e-2}};
     casadi::Function solver_exp = casadi::nlpsol("solver", "ipopt", lib_name_exp, opts);
 

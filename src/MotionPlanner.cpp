@@ -453,6 +453,7 @@ void MotionPlanner::planTraj(const StateInfo *state, const KinematicsInfo *kin, 
             traj.comDes.block(6,0,3,1) = Eigen::MatrixXd::Zero(3,1);//opt_HLstate.block(6,0,3,1);
             traj.comDes.block(9,0,3,1) = Eigen::MatrixXd::Zero(3,1);//opt_HLstate.block(9,0,3,1);
             traj.comDes(7) = 0.35;
+            traj.comDes(1) = 0.0;
         // }
         // if(ctrlTick>=34000){ 
             // traj.comDes(0)=x_fixed;
