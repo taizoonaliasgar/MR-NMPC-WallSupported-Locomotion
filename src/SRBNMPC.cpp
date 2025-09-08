@@ -1568,19 +1568,19 @@ void SRBNMPC::getprevioussol_fullsimMT(casadi::DM q0, Eigen::Matrix<double,3,4> 
     x0_MT(casadi::Slice(NFS*(HORIZ+1),NFS*(HORIZ+1)+NFI*(HORIZ-1))) = previous_sol(casadi::Slice(NFS*(HORIZ+1)+NFI,NFS*(HORIZ+1)+NFI*(HORIZ)));
     x0_MT(casadi::Slice(NFS*(HORIZ+1)+NFI*(HORIZ-1),NFS*(HORIZ+1)+NFI*(HORIZ))) = previous_sol(casadi::Slice(NFS*(HORIZ+1)+NFI*(HORIZ-1),NFS*(HORIZ+1)+NFI*(HORIZ)));
 
-    if(controlTick<1400){
-        for (int i = 0; i < HORIZ; i++) {
-            // x0_MT(casadi::Slice(NFS*(i+1),NFS*(i+2))) = x0_MT(casadi::Slice(0,NFS));
-            // x0_MT(casadi::Slice(NFS*(HORIZ+1)+i*NFI,NFS*(HORIZ+1)+i*NFI+12)) = forceQP_dm;
-            casadi::DM con_curr = (controlTick+i)%60;
+    // if(controlTick<1400){
+    //     for (int i = 0; i < HORIZ; i++) {
+    //         // x0_MT(casadi::Slice(NFS*(i+1),NFS*(i+2))) = x0_MT(casadi::Slice(0,NFS));
+    //         // x0_MT(casadi::Slice(NFS*(HORIZ+1)+i*NFI,NFS*(HORIZ+1)+i*NFI+12)) = forceQP_dm;
+    //         casadi::DM con_curr = (controlTick+i)%60;
 
-            x0_MT(NFS*(i+1)+2) = 0.5;
-            x0_MT(NFS*(i+1)+5) = 0.0;
+    //         x0_MT(NFS*(i+1)+2) = 0.5;
+    //         x0_MT(NFS*(i+1)+5) = 0.0;
 
-            x0_MT(NFS*(HORIZ+1)+NFI*i+8) = contact_sequence_dm30(2,con_curr)*MASS*9.81/(contact_sequence_dm30(2,con_curr)+contact_sequence_dm30(3,con_curr));
-            x0_MT(NFS*(HORIZ+1)+NFI*i+11) = contact_sequence_dm30(3,con_curr)*MASS*9.81/(contact_sequence_dm30(2,con_curr)+contact_sequence_dm30(3,con_curr));
-        }
-    }
+    //         x0_MT(NFS*(HORIZ+1)+NFI*i+8) = contact_sequence_dm30(2,con_curr)*MASS*9.81/(contact_sequence_dm30(2,con_curr)+contact_sequence_dm30(3,con_curr));
+    //         x0_MT(NFS*(HORIZ+1)+NFI*i+11) = contact_sequence_dm30(3,con_curr)*MASS*9.81/(contact_sequence_dm30(2,con_curr)+contact_sequence_dm30(3,con_curr));
+    //     }
+    // }
 }
 
 

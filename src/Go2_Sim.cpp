@@ -574,7 +574,7 @@ void ExternalComm::HighLevel(){
     // std::cout << "Inhighlevel" << std::endl;
     
     updateData(GET_DATA, HL_DATA, &HLData);
-    if(HLData.control_Tick > switchtime*1000+1999 && HLData.control_Tick%10==0){ // Settle down
+    if(HLData.control_Tick > (switchtime+12)*1000+1999 && HLData.control_Tick%10==0){ // Settle down
         auto start = std::chrono::high_resolution_clock::now();
         nmpc_obj->planner_MT(HLData.control_Tick, HLData.q, HLData.dq, HLData.toePos, HLData.QPforce);
         HLData.comDes= nmpc_obj->returncomDes();
