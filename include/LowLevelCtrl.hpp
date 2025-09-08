@@ -39,6 +39,7 @@ public:
     //Kp cheating
     void switchKp(){upKp = true;};
     void MPCWalking(){MPCgains=true;};
+    void MPCWalking2(){MPCgains2=true;};
 private:
 
     #if(USE_QPSWIFT)
@@ -107,6 +108,7 @@ private:
     Eigen::Matrix<double,3,3> dFGainNew=Eigen::MatrixXd::Identity(3,3);
     Eigen::Matrix<double,3,3> dFMultiplier=Eigen::MatrixXd::Identity(3,3);
     double dFGainMPCn = 1e2;
+    bool MPCgains2 = false;
 
 };
 
