@@ -598,7 +598,19 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
     double kdGainy = params->kd; 
     double kdGainz = params->kd; 
 
-    if(MPCgains2){
+    // if(MPCgains2){
+    //     kpGain = 400; 
+    //     kpGainx = 300;
+    //     kpGainy = 400;
+    //     kpGainz = 400;
+
+    //     kdGain = 20;
+    //     kdGainx = 20;
+    //     kdGainy = 20;
+    //     kdGainz = 10;
+    // }
+    // else
+    if(MPCgains){
         kpGain = 400; 
         kpGainx = 300;
         kpGainy = 400;
@@ -607,18 +619,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kdGain = 20;
         kdGainx = 20;
         kdGainy = 20;
-        kdGainz = 10;
-    }
-    else if(MPCgains){
-        kpGain = 400; 
-        kpGainx = 300;
-        kpGainy = 400;
-        kpGainz = 400;
-
-        kdGain = 20;
-        kdGainx = 20;
-        kdGainy = 20;
-        kdGainz = 10;
+        kdGainz = 30;
     }
     else if(uprighty){
         kpGain = 400;
