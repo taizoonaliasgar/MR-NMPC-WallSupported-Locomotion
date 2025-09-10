@@ -1538,7 +1538,7 @@ void SRBNMPC::statebounds_MT(casadi::DM p){
 
         lbx_MT(NFS*(k+1)+1) = -0.07;
         lbx_MT(NFS*(k+1)+2) = 0.46;
-        lbx_MT(NFS*(k+1)+5) = -0.15;
+        lbx_MT(NFS*(k+1)+5) = -0.05;
         lbx_MT(NFS*(k+1)+12) = p(0)-abs(Raibstep)+front_off;
         lbx_MT(NFS*(k+1)+13) = p(0)-abs(Raibstep)+front_off;
         lbx_MT(NFS*(k+1)+14) = p(0)-abs(Raibstep)+rear_off;
@@ -1553,7 +1553,7 @@ void SRBNMPC::statebounds_MT(casadi::DM p){
 
         ubx_MT(NFS*(k+1)+1) = 0.07;
         ubx_MT(NFS*(k+1)+2) = 0.54;
-        ubx_MT(NFS*(k+1)+5) = 0.15;
+        ubx_MT(NFS*(k+1)+5) = 0.05;
         ubx_MT(NFS*(k+1)+12) = p(0)+abs(Raibstep)+front_off;
         ubx_MT(NFS*(k+1)+13) = p(0)+abs(Raibstep)+front_off;
         ubx_MT(NFS*(k+1)+14) = p(0)+abs(Raibstep)+rear_off;
