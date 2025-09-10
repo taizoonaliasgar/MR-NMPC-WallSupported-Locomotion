@@ -379,7 +379,7 @@ void LocoWrapper::setfinalCoM2(int settlesteps){
         CoM_final(0) = (kin->toePos(0,2)+kin->toePos(0,3))/2+0.05;
     // }
     // CoM_final(0) = (kin->toePos(0,2)+kin->toePos(0,3))/2;// + 0.05; //(kin->hipPos(0,2) + kin->hipPos(0,3))/2 + 0.183*sin(pitch);//
-    CoM_final(2) = 0.6;//rhipz + 0.183*cos(pitch)-0.05;//0.5
+    CoM_final(2) = 0.55;//rhipz + 0.183*cos(pitch)-0.05;//0.5
     CoM_final(3) = 0.35;//0*pitch;///(phaseVar>1) ? 1 : ((phaseVar<0) ? 0 : phaseVar)
     PP->setshiftedCoM(CoM_final);
 
@@ -616,7 +616,7 @@ void LocoWrapper::ExpWrapper(const double jpos_est[18], const double jvel_est[18
                 x00 = jpos_est[0];
                 z00 = jpos_est[2];
                 setdx = ((kin->toePos(0,2)+kin->toePos(0,3))/2+0.05-jpos_est[0])/settlingsteps;
-                setdz = (0.6-jpos_est[2])/settlingsteps;
+                setdz = (0.55-jpos_est[2])/settlingsteps;
                 // setfinalCoM();
                 switchKp();
             } 

@@ -214,7 +214,7 @@ private:
     int16_t simcounter = 0;
     int16_t planindex = 0;
     int16_t M = HORIZ;
-    double stand_height = 0.6;
+    double stand_height = 0.55;
     Eigen::Matrix<double, DOMAINSTEPS+HORIZ,1> vz_domain;
     double z_travel = 0;
     double fzmaxr = 250;
