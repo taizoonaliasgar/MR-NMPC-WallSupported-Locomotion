@@ -214,7 +214,7 @@ private:
     int16_t simcounter = 0;
     int16_t planindex = 0;
     int16_t M = HORIZ;
-    double stand_height = 0.55;
+    double stand_height = 0.53;
     Eigen::Matrix<double, DOMAINSTEPS+HORIZ,1> vz_domain;
     double z_travel = 0;
     double fzmaxr = 250;
@@ -277,7 +277,7 @@ private:
     bool starttrotting = false;
 
     //Hardware
-    std::string lib_name_exp = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/Go2_w0p2_ro_0p05_50b.so";
+    std::string lib_name_exp = "/home/taizoon/raisimEnv/Workspace/FootstepPlanner/build/Go2_w0p2_ro_0p05_40b.so";
     casadi::Dict opts = {{"ipopt.print_level", 1}, {"print_time", 0},{"ipopt.max_iter", 12},{"ipopt.acceptable_tol", 1e-2},{"ipopt.acceptable_obj_change_tol", 1e-2}};
     casadi::Function solver_exp = casadi::nlpsol("solver", "ipopt", lib_name_exp, opts);
 
