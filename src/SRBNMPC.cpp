@@ -1537,8 +1537,8 @@ void SRBNMPC::statebounds_MT(casadi::DM p){
         contact_index = p(casadi::Slice(NFS*(HORIZ+1)+HORIZ*NFI+4*(k+1),NFS*(HORIZ+1)+HORIZ*NFI+4*(k+2)));
 
         lbx_MT(NFS*(k+1)+1) = -0.07;
-        lbx_MT(NFS*(k+1)+2) = 0.46;
-        lbx_MT(NFS*(k+1)+5) = -0.1;
+        lbx_MT(NFS*(k+1)+2) = stand_height-0.04;
+        lbx_MT(NFS*(k+1)+5) = -0.15;
         lbx_MT(NFS*(k+1)+12) = p(0)-abs(Raibstep)+front_off;
         lbx_MT(NFS*(k+1)+13) = p(0)-abs(Raibstep)+front_off;
         lbx_MT(NFS*(k+1)+14) = p(0)-abs(Raibstep)+rear_off;
@@ -1552,8 +1552,8 @@ void SRBNMPC::statebounds_MT(casadi::DM p){
         lbx_MT(NFS*(HORIZ+1)+NFI*k+15) = (1-contact_index(3))*(-RaibMult*abs(vRaibstep));
 
         ubx_MT(NFS*(k+1)+1) = 0.07;
-        ubx_MT(NFS*(k+1)+2) = 0.54;
-        ubx_MT(NFS*(k+1)+5) = 0.1;
+        ubx_MT(NFS*(k+1)+2) = stand_height+0.04;
+        ubx_MT(NFS*(k+1)+5) = 0.15;
         ubx_MT(NFS*(k+1)+12) = p(0)+abs(Raibstep)+front_off;
         ubx_MT(NFS*(k+1)+13) = p(0)+abs(Raibstep)+front_off;
         ubx_MT(NFS*(k+1)+14) = p(0)+abs(Raibstep)+rear_off;
