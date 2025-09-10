@@ -619,7 +619,7 @@ void LowLevelCtrl::constraintswalk(LLP *params, const DynInf *dyn, const KinInf 
         kdGain = 20;
         kdGainx = 20;
         kdGainy = 20;
-        kdGainz = 10;
+        kdGainz = 20;
     }
     else if(uprighty){
         kpGain = 400;
