@@ -1420,7 +1420,7 @@ void SRBNMPC::planner_MT(size_t controlTick, double q[18], double dq[18], Eigen:
     // if(controlTick == 32000){letsgo();}
     auto end1 = std::chrono::high_resolution_clock::now();
     controlMPC_MT = std::floor((controlTick-21989)/20); 
-    if(controlMPC_MT == 2100){letsgo();}
+    if(controlMPC_MT == 900){letsgo();}
     for(int i = 0; i<3; i++){
         q0_MT(i) = q[i];
         q0_MT(i+3) = dq[i];
@@ -1874,7 +1874,7 @@ casadi::DM SRBNMPC::  motionPlannerN_MT15(casadi::DM q0, size_t controlTick){
     // }
 
     if(starttrotting){
-        if(controlTick%300 == 0){
+        if(controlTick%30 == 0){
 
             if(localvelocity < desVel(0)){
                     localvelocity = localvelocity + 0.05;
