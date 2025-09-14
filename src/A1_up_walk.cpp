@@ -357,7 +357,8 @@ int main(int argc, char *argv[]) {
     // A1.push_back(world.addArticulatedSystem(raisim::loadResource("Go1/Go1.urdf"))); // WHEN USING Go1, BE SURE TO CHANGE CMAKE TO USE CORRECT DYNAMICS
     //A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_new.urdf")));
     //A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod.urdf")));
-    A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod_2.urdf")));
+    // A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod_2.urdf")));
+    A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod_sensored.urdf")));
     vis->createGraphicalObject(A1.back(), "A1");
 
     //A1.back()->setGeneralizedCoordinate({0, 0, 0.35, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
@@ -527,7 +528,7 @@ int main(int argc, char *argv[]) {
     loco_obj->setRFfalse();
     SRBNMPC* loco_plan = new SRBNMPC(argc,argv,1,0);
     //loco_plan->generator();
-    std::string file_name = "take2_1";//"upright_h5_71";
+    std::string file_name = "take2_w0p2_ro_0";//"take2_1";//"upright_h5_71";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
@@ -689,19 +690,19 @@ int main(int argc, char *argv[]) {
         }*/
         //std::cout << "simcounter" << "\t" << simcounter << std::endl;
 
-        if(abs(jointPosTotal(1))>0.04){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
-            break;
-        }else if(abs(jointPosTotal(2)-0.5)>0.05){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
-            break;
-        }else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
-            break;
-        }else if(jointPosTotal(0)>7){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
-            break;
-        }
+        // if(abs(jointPosTotal(1))>0.04){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
+        //     break;
+        // }else if(abs(jointPosTotal(2)-0.5)>0.05){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
+        //     break;
+        // }else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
+        //     break;
+        // }else if(jointPosTotal(0)>7){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
+        //     break;
+        // }
         
         simcounter++;
         
