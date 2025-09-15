@@ -369,8 +369,18 @@ int main(int argc, char *argv[]) {
     
     //Full Order Simulation
     //Rear offset -0.1
-    A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
-                                       -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.4532, -1.1582, 0.0, 2.4532, -1.1582});
+    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.4532, -1.1582, 0.0, 2.4532, -1.1582});
+    //Sep15 2025: Pitch 0.35
+    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.4532, -1.1582, 0.0, 2.4532, -1.1582});
+    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.1844, -1.2899, 0.0, 2.1844, -1.2899});
+    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.2239, -1.9457, 0.0, 2.2239, -1.9457});
+    A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+                                       -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 1.7885, -1.1959, 0.0, 1.7885, -1.1959});
+
     //Rear offset -0.01
     //A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
     //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.247, -1.2899, 0.0, 2.247, -1.2899});
@@ -527,8 +537,8 @@ int main(int argc, char *argv[]) {
     LocoWrapperwalk* loco_obj = new LocoWrapperwalk(argc,argv);
     loco_obj->setRFfalse();
     SRBNMPC* loco_plan = new SRBNMPC(argc,argv,1,0);
-    //loco_plan->generator();
-    std::string file_name = "upright_h5_71";
+    // loco_plan->generator();
+    std::string file_name = "upright_compare_1";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
@@ -690,19 +700,19 @@ int main(int argc, char *argv[]) {
         }*/
         //std::cout << "simcounter" << "\t" << simcounter << std::endl;
 
-        if(abs(jointPosTotal(1))>0.04){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
-            break;
-        }else if(abs(jointPosTotal(2)-0.5)>0.05){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
-            break;
-        }else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
-            break;
-        }else if(jointPosTotal(0)>7){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
-            break;
-        }
+        // if(abs(jointPosTotal(1))>0.04){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
+        //     break;
+        // }else if(abs(jointPosTotal(2)-0.5)>0.05){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
+        //     break;
+        // }else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
+        //     break;
+        // }else if(jointPosTotal(0)>7){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
+        //     break;
+        // }
         
         simcounter++;
         

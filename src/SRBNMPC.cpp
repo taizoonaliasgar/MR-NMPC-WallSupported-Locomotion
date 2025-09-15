@@ -30,9 +30,12 @@ SRBNMPC::SRBNMPC(int argc, char *argv[], int numRobots, int id) : Parameters(arg
     J << 0.016840,0.000084,0.000598,0.000084,0.056579,0.000025,0.000598,0.000025,0.064714;
     Jinv << 59.402578,-0.087845,-0.548594,-0.087845,17.674526,-0.006053,-0.548594,-0.006053,15.457771;
     
-    Rstand << 0,0,-1,  0,1,0,  1,0,0;
-    Jstand = Rstand*J*Rstand.transpose();
-    Jinvstand = Rstand*Jinv*Rstand.transpose();
+    // Rstand << 0,0,-1,  0,1,0,  1,0,0;
+    // Jstand = Rstand*J*Rstand.transpose();
+    // Jinvstand = Rstand*Jinv*Rstand.transpose();
+    Rstand << 0.342,0,-0.94,  0,1,0,  0.94,0,0.342;
+    Jstand = J;
+    Jinvstand = Jinv;
 
     std::copy(Jstand.data(), Jstand.data() + Jstand.size(), Jstandcasadi.ptr());
     std::copy(Jinvstand.data(), Jinvstand.data() + Jinvstand.size(), Jinvcasadi.ptr());
@@ -92,7 +95,7 @@ void SRBNMPC::generator(){
     //casadi::Function solver = casadi::nlpsol("solver", "ipopt", {{"x", x}, {"f", f}, {"g", g}, {"p", p}});//, opts);
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", nlp_prob, opts);
     // file name
-    std::string file_name = "upright_h5_71";
+    std::string file_name = "upright_compare_1";
     // code predix
     std::string prefix_code = std::filesystem::current_path().string() + "/";
 
@@ -183,12 +186,12 @@ casadi::DM SRBNMPC::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t control
         
         conp1 = (controlTick+i)%40;
         
-        x_des((i+1)*NFS) = x_des(0) + (i+1)*localvelocity*MPC_dt, 
+        x_des((i+1)*NFS) = x_des(0) + (i+1)*localvelocity*MPC_dt; 
         x_des((i+1)*NFS+1) = 0;//x_des(1) + (i+1)*desVel(1)*MPC_dt; 
         x_des((i+1)*NFS+2) = stand_height;                                 
-        x_des((i+1)*NFS+3) = localvelocity, 
+        x_des((i+1)*NFS+3) = localvelocity; 
         x_des((i+1)*NFS+4) = desVel(1);
-        x_des((i+1)*NFS+7) = 0;
+        x_des((i+1)*NFS+7) = 0.35;
 
         //if(controlTick+i>0){
             conp1_next = (controlTick+i+1)%40;
@@ -358,15 +361,25 @@ casadi::SX SRBNMPC::NonlinearDynamics(casadi::SX st,casadi::SX con, casadi::SX c
     casadi::SX f4 = con(casadi::Slice(9,12));
     
     casadi::SX A = casadi::SX::zeros(3,3);
-    A(0,0) = 1;
-    A(0,1) = sin(phi)*tan(theta);
-    A(0,2) = cos(phi)*tan(theta);
-    A(1,0) = 0;
-    A(1,1) = cos(phi);
-    A(1,2) = -sin(phi);
-    A(2,0) = 0;
-    A(2,1) = sin(phi)/cos(theta);
-    A(2,2) = cos(phi)/cos(theta);
+    // A(0,0) = 1;
+    // A(0,1) = sin(phi)*tan(theta);
+    // A(0,2) = cos(phi)*tan(theta);
+    // A(1,0) = 0;
+    // A(1,1) = cos(phi);
+    // A(1,2) = -sin(phi);
+    // A(2,0) = 0;
+    // A(2,1) = sin(phi)/cos(theta);
+    // A(2,2) = cos(phi)/cos(theta);
+
+    A(0,0) = cos(psi)/cos(theta);
+    A(0,1) = -sin(psi)/cos(theta);
+    A(0,2) = 0;
+    A(1,0) = sin(psi);
+    A(1,1) = cos(psi);
+    A(1,2) = 0;
+    A(2,0) = -cos(psi)*tan(theta);
+    A(2,1) = sin(psi)*tan(theta);
+    A(2,2) = 1;
 
     // A(0,0)=1;A(1,1)=1;A(2,2)=1;
 
@@ -442,9 +455,9 @@ casadi::SX SRBNMPC::GetTorque(casadi::SX st,casadi::SX con){
     casadi::SX Rtheta = casadi::SX::zeros(3,3);
     casadi::SX Rpsi = casadi::SX::zeros(3,3);
 
-    Rphi(0,0) = 1; Rphi(1,1) = cos(st(6)); Rphi(1,2) = -sin(st(6));Rphi(2,1) = sin(st(6));Rphi(2,2) = cos(st(6));
-    Rtheta(0,0) = cos(st(7)); Rtheta(0,2) = sin(st(7)); Rtheta(1,1) = 1; Rtheta(2,0) = -sin(st(7)); Rtheta(2,2) = cos(st(7));
-    Rpsi(0,0) = cos(st(8)); Rpsi(0,1) = -sin(st(8)); Rpsi(1,0) = sin(st(8)); Rpsi(1,1) = cos(st(8)); Rpsi(2,2) = 1;
+    Rphi(0,0) = 1; Rphi(1,1) = cos(st(6)); Rphi(1,2) = sin(st(6));Rphi(2,1) = -sin(st(6));Rphi(2,2) = cos(st(6));
+    Rtheta(0,0) = cos(st(7)); Rtheta(0,2) = -sin(st(7)); Rtheta(1,1) = 1; Rtheta(2,0) = sin(st(7)); Rtheta(2,2) = cos(st(7));
+    Rpsi(0,0) = cos(st(8)); Rpsi(0,1) = sin(st(8)); Rpsi(1,0) = -sin(st(8)); Rpsi(1,1) = cos(st(8)); Rpsi(2,2) = 1;
     
     casadi::SX Ri = mtimes(Rpsi,Rtheta);
     casadi::SX R = mtimes(Ri,Rphi);
