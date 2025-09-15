@@ -403,7 +403,7 @@ void MotionPlanner::planTraj(const StateInfo *state, const KinematicsInfo *kin, 
         //traj.comDes(8) = yawOffset;
         traj.comDes.block(6,0,3,1) = opt_HLstate.block(6,0,3,1);
         
-        traj.comDes.block(9,0,3,1) = desOmegaWorld;      
+        traj.comDes.block(9,0,3,1) = 0*desOmegaWorld;      
 
     }
 }
