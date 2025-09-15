@@ -95,7 +95,7 @@ void SRBNMPC::generator(){
     //casadi::Function solver = casadi::nlpsol("solver", "ipopt", {{"x", x}, {"f", f}, {"g", g}, {"p", p}});//, opts);
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", nlp_prob, opts);
     // file name
-    std::string file_name = "upright_compare_2";
+    std::string file_name = "upright_compare_3";
     // code predix
     std::string prefix_code = std::filesystem::current_path().string() + "/";
 
@@ -250,7 +250,7 @@ casadi::SX SRBNMPC::UpdateCostN(casadi::SX x, casadi::SX x_des){
     Q.setZero();
     Q.block(0,0,3,3).diagonal() <<  1e4,5e4,8e5;//5e4//1e4//mpc_params.qpx, mpc_params.qpy, mpc_params.qpz;
     Q.block(3,3,3,3).diagonal() <<  1e5,1e4,1e4;//4e5//5e4//mpc_params.qvx, mpc_params.qvy, mpc_params.qvz;
-    Q.block(6,6,3,3).diagonal() <<  8e4,8e5,3e4;//3e4//mpc_params.qrr, mpc_params.qrp, mpc_params.qry;
+    Q.block(6,6,3,3).diagonal() <<  8e4,8e5,1e5;//3e4//mpc_params.qrr, mpc_params.qrp, mpc_params.qry;
     //Yaw:3e3
     Q.block(9,9,3,3).diagonal() <<  1e2,1e2,1e2;//1//1e2//mpc_params.qwr, mpc_params.qwp, mpc_params.qwy;
     Q.block(12,12,4,4).diagonal() <<  1e5,1e5,1e5,1e5;//1e-2//1e3//1e5,1e5,1e5,1e5;
