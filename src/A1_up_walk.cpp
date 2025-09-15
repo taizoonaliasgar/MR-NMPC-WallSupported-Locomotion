@@ -439,7 +439,7 @@ int main(int argc, char *argv[]) {
     // ================================================= //
    // =========== Ground Height Variations ============ //
    // ================================================= //
-   int roughterrain = 1;
+   int roughterrain = 0;
    if(roughterrain){
        //long int randomSeed = std::time(nullptr);
        std::srand(terrain_number);
@@ -537,8 +537,8 @@ int main(int argc, char *argv[]) {
     LocoWrapperwalk* loco_obj = new LocoWrapperwalk(argc,argv);
     loco_obj->setRFfalse();
     SRBNMPC* loco_plan = new SRBNMPC(argc,argv,1,0);
-    // loco_plan->generator();
-    std::string file_name = "upright_compare_1";
+    loco_plan->generator();
+    std::string file_name = "upright_compare_2";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
