@@ -65,7 +65,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${EIGEN3_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(dyn_srcs 
-    "${LL_DIR}/dynamics/A1/A1_Dynamics_upr.cpp"
+    "${LL_DIR}/dynamics/A1/A1_Dynamics_z.cpp"
     "${LL_DIR}/dynamics/RobotModel.cpp")
     
 add_library(dyn_lib ${dyn_srcs})

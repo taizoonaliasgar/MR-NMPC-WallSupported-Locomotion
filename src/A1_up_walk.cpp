@@ -357,7 +357,8 @@ int main(int argc, char *argv[]) {
     // A1.push_back(world.addArticulatedSystem(raisim::loadResource("Go1/Go1.urdf"))); // WHEN USING Go1, BE SURE TO CHANGE CMAKE TO USE CORRECT DYNAMICS
     //A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_new.urdf")));
     //A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod.urdf")));
-    A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod_2.urdf")));
+    // A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod_2.urdf")));
+    A1.push_back(world.addArticulatedSystem(raisim::loadResource("A1/A1_modified_up_mod_sensored.urdf")));
     vis->createGraphicalObject(A1.back(), "A1");
 
     //A1.back()->setGeneralizedCoordinate({0, 0, 0.35, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
