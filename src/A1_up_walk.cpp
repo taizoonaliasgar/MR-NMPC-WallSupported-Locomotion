@@ -439,7 +439,7 @@ int main(int argc, char *argv[]) {
     // ================================================= //
    // =========== Ground Height Variations ============ //
    // ================================================= //
-   int roughterrain = 0;
+   int roughterrain = 1;
    if(roughterrain){
        //long int randomSeed = std::time(nullptr);
        std::srand(terrain_number);
