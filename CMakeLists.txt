@@ -15,15 +15,21 @@ add_definitions(-DUSE_QPSWIFT=1)
 set(LL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/LL_integrator)
 set(ROBOT_DIR "A1_New_wFoot")
 
-find_package(raisim CONFIG HINTS "/home/taizoon/raisimEnv/raisimBuild/lib/cmake/raisim")
-find_package(raisimOgre CONFIG HINTS "/home/taizoon/raisimEnv/raisimBuild/share/raisimOgre/cmake")
+# find_package(raisim CONFIG HINTS "/home/taizoon/raisimEnv/raisimBuild/lib/cmake/raisim")
+# find_package(raisimOgre CONFIG HINTS "/home/taizoon/raisimEnv/raisimBuild/share/raisimOgre/cmake")
+find_package(OGRE CONFIG HINTS "/home/taizoon/raisimEnv/Buildspace/lib/OGRE/cmake")
+find_package(raisim CONFIG HINTS "/home/taizoon/raisimEnv/Buildspace/lib/cmake/raisim")
+find_package(raisimOgre CONFIG HINTS "/home/taizoon/raisimEnv/Buildspace/share/raisimOgre/cmake")
 
 # find_package(raisim CONFIG HINTS "/home/trec/WorkRaj/raisim_legged/raisim_build/lib/cmake/raisim")
 # find_package(OGRE CONFIG REQUIRED PATHS "/home/trec/WorkRaj/raisim_legged/raisim_build/lib/OGRE/cmake")
 # find_package(raisimOgre CONFIG HINTS  "/home/trec/WorkRaj/raisim_legged/raisim_build/share/raisimOgre/cmake")  
 
 include_directories(PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/raisimOgre_include)
-find_package(Eigen3 REQUIRED HINTS ${Eigen3_HINT})
+# find_package(Eigen3 REQUIRED HINTS ${Eigen3_HINT})
+find_package(Eigen3 REQUIRED HINTS /home/taizoon/local/eigen)
+include_directories("/home/taizoon/local/eigen/include")
+include_directories("/home/taizoon/local/eigen/include/eigen3")
 
 #find_package(osqp REQUIRED)
 

@@ -5,3 +5,7 @@ build/CMakeFiles/*
 build/tmp/
 optimization/
 rsc/activation.raisim
+data25/
+unitree_legged_sdk/
+unitree_legged_sdk2/
+unitree_sdk2/
