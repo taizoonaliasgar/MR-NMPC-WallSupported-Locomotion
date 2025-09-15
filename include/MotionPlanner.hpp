@@ -40,6 +40,7 @@ public:
     void updatesteplen(ContactEst *con_obj);
     //NMPC footstep planner
     void setStep_NMPC(Eigen::Matrix<double,5,1> NLstep,double vdes, const StateInfo *state, MP * params, double phase);
+    Eigen::Matrix<double,3,1> getthetadot(Eigen::Matrix<double,6,1> q_opt);
 
 
 protected:
