@@ -369,8 +369,8 @@ int main(int argc, char *argv[]) {
     
     //Full Order Simulation
     //Rear offset -0.1
-    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
-    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.4532, -1.1582, 0.0, 2.4532, -1.1582});
+    A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+                                       -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.4532, -1.1582, 0.0, 2.4532, -1.1582});
     //Sep15 2025: Pitch 0.35
     // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
     //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.4532, -1.1582, 0.0, 2.4532, -1.1582});
@@ -378,8 +378,11 @@ int main(int argc, char *argv[]) {
     //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.1844, -1.2899, 0.0, 2.1844, -1.2899});
     // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
     //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.2239, -1.9457, 0.0, 2.2239, -1.9457});
-    A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
-                                       -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 1.7885, -1.1959, 0.0, 1.7885, -1.1959});
+    
+    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 0.9847265 ,0, 0.1741081, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 1.7885, -1.1959, 0.0, 1.7885, -1.1959});
+    // A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1 ,0, 0, 0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
+    //                                    -0.7337, 1.0175, -2.035, 0.7337, 1.0175, -2.035, 0.0, 2.3553, -1.2585, 0.0, 2.3553, -1.2585});
 
     //Rear offset -0.01
     //A1.back()->setGeneralizedCoordinate({0, 0, 0.5, 1,0,0,0,//0.9238795,0,0.3826834,0,//1, 0, 0, 0,
@@ -439,7 +442,7 @@ int main(int argc, char *argv[]) {
     // ================================================= //
    // =========== Ground Height Variations ============ //
    // ================================================= //
-   int roughterrain = 1;
+   int roughterrain = 0;
    if(roughterrain){
        //long int randomSeed = std::time(nullptr);
        std::srand(terrain_number);
@@ -538,7 +541,7 @@ int main(int argc, char *argv[]) {
     loco_obj->setRFfalse();
     SRBNMPC* loco_plan = new SRBNMPC(argc,argv,1,0);
     // loco_plan->generator();
-    std::string file_name = "upright_compare_2";
+    std::string file_name = "upright_compare_1";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
