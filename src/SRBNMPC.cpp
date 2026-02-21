@@ -194,7 +194,7 @@ casadi::DM SRBNMPC::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t control
             conp1_next = (controlTick+i+1)%40;
         //}
         if((controlTick+i)%20 == 0){
-            x0 = x_des(i*NFS);
+            x0 = x_des((i+1)*NFS);
         }
 
         x_des((i+1)*NFS+12) = contact_sequence_dm(0,conp1_next)*contact_sequence_dm(0,conp1)*x_des(i*NFS+12)+
@@ -358,15 +358,25 @@ casadi::SX SRBNMPC::NonlinearDynamics(casadi::SX st,casadi::SX con, casadi::SX c
     casadi::SX f4 = con(casadi::Slice(9,12));
     
     casadi::SX A = casadi::SX::zeros(3,3);
-    A(0,0) = 1;
-    A(0,1) = sin(phi)*tan(theta);
-    A(0,2) = cos(phi)*tan(theta);
-    A(1,0) = 0;
-    A(1,1) = cos(phi);
-    A(1,2) = -sin(phi);
-    A(2,0) = 0;
-    A(2,1) = sin(phi)/cos(theta);
-    A(2,2) = cos(phi)/cos(theta);
+    // A(0,0) = 1;
+    // A(0,1) = sin(phi)*tan(theta);
+    // A(0,2) = cos(phi)*tan(theta);
+    // A(1,0) = 0;
+    // A(1,1) = cos(phi);
+    // A(1,2) = -sin(phi);
+    // A(2,0) = 0;
+    // A(2,1) = sin(phi)/cos(theta);
+    // A(2,2) = cos(phi)/cos(theta);
+
+    A(0,0) = cos(psi)/cos(theta);
+    A(0,1) = -sin(psi)/cos(theta);
+    A(0,2) = 0;
+    A(1,0) = sin(psi);
+    A(1,1) = cos(psi);
+    A(1,2) = 0;
+    A(2,0) = -cos(psi)*tan(theta);
+    A(2,1) = sin(psi)*tan(theta);
+    A(2,2) = 1;
 
     // A(0,0)=1;A(1,1)=1;A(2,2)=1;
 

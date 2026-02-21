@@ -201,6 +201,7 @@ private:
     casadi::DM Footoffset = {0.2,0.2,-0.1,-0.1};
     casadi::DM p_prev =casadi::DM::zeros(NFSR*(HORIZ+1)+NFIR*HORIZ+8*HORIZ,1);
     double localvelocity = 0;
+    casadi::DM x_dom_init = 0;
 
     Eigen::MatrixXd forceCoeff;
     //Eigen::Matrix<double, 12, 5> forceCoeff = Eigen::MatrixXd::Zero(12,5);

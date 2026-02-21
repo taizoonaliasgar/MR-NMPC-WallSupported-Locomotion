@@ -184,12 +184,17 @@ casadi::DM SRBNMPCR::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t contro
         }else{
             localvelocity = 0;
         }
+    // }
+    // if(controlTick%20 == 0){
         //Raibheur = 0.5*Tstance*(abs(q0(3))) + sqrt(stand_height/9.81)*(abs(q0(3))-localvelocity);
+        x_dom_init = q0_dm(0);
         Raibheur(0) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) + 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
         Raibheur(1) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) + 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
         Raibheur(2) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) - 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
         Raibheur(3) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) - 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
     }
+
+    casadi::DM x0 = x_dom_init;
     
     for(size_t i= 0; i< HORIZ; i++){
         
@@ -203,7 +208,7 @@ casadi::DM SRBNMPCR::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t contro
         x_des((i+1)*NFSR) = x_des(0) + (i+1)*localvelocity*MPC_dt; 
         x_des((i+1)*NFSR+1) = 0;//x_des(1) + (i+1)*desVel(1)*MPC_dt; 
         x_des((i+1)*NFSR+2) = stand_height;                                 
-        x_des((i+1)*NFSR+3) = localvelocity, 
+        x_des((i+1)*NFSR+3) = localvelocity;
         x_des((i+1)*NFSR+4) = desVel(1);
         
         
@@ -211,6 +216,9 @@ casadi::DM SRBNMPCR::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t contro
         x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*i+1) = contact_sequence_dm(1,conp1);
         x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*i+2) = contact_sequence_dm(2,conp1);
         x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*i+3) = contact_sequence_dm(3,conp1);
+        if((controlTick+i)%20 == 0){
+            x0 = x_des((i+1)*NFSR);
+        }
 
         
         //x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i) = 0.2;//contact_sequence_dm(0,conp1);
@@ -219,13 +227,29 @@ casadi::DM SRBNMPCR::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t contro
         //x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+3) = -0.1;//contact_sequence_dm(3,conp1);
         
         //if(controlTick>0){
+            // for (int leg = 0;leg<4;leg++){
+            //     if(contact_sequence_dm(leg,conp1).scalar() > contact_sequence_dm(leg,conp1_prev).scalar()){
+            //         if(i<1){
+            //             x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x_des(0)+Raibheur(leg);//+0.2;//contact_sequence_dm(0,conp1);
+            //         }else{
+            //             x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x_des(NFSR*(i-1))+Raibheur(leg);//-0.1;
+            //         }    
+            //     }else{
+            //         if(i<1){
+            //             x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = q0_dm(12+leg);
+            //         }else{
+            //             x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*(i-1)+leg);//x_des(NFSR*i);
+            //         }
+            //     }
+            // }
+
             for (int leg = 0;leg<4;leg++){
                 if(contact_sequence_dm(leg,conp1).scalar() > contact_sequence_dm(leg,conp1_prev).scalar()){
-                    if(i<1){
-                        x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x_des(0)+Raibheur(leg);//+0.2;//contact_sequence_dm(0,conp1);
-                    }else{
-                        x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x_des(NFSR*(i-1))+Raibheur(leg);//-0.1;
-                    }    
+                    // if(i<1){
+                        x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x0+Raibheur(leg);//+0.2;//contact_sequence_dm(0,conp1);
+                    // }else{
+                        // x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = x_des(NFSR*(i-1))+Raibheur(leg);//-0.1;
+                    // }    
                 }else{
                     if(i<1){
                         x_des(NFSR*(HORIZ+1)+NFIR*(HORIZ)+4*HORIZ+4*i+leg) = q0_dm(12+leg);
@@ -351,15 +375,25 @@ casadi::SX SRBNMPCR::NonlinearDynamics(casadi::SX st,casadi::SX con, casadi::SX 
     casadi::SX f4 = con(casadi::Slice(9,12));
     
     casadi::SX A = casadi::SX::zeros(3,3);
-    A(0,0) = 1;
-    A(0,1) = sin(phi)*tan(theta);
-    A(0,2) = cos(phi)*tan(theta);
-    A(1,0) = 0;
-    A(1,1) = cos(phi);
-    A(1,2) = -sin(phi);
-    A(2,0) = 0;
-    A(2,1) = sin(phi)/cos(theta);
-    A(2,2) = cos(phi)/cos(theta);
+    // A(0,0) = 1;
+    // A(0,1) = sin(phi)*tan(theta);
+    // A(0,2) = cos(phi)*tan(theta);
+    // A(1,0) = 0;
+    // A(1,1) = cos(phi);
+    // A(1,2) = -sin(phi);
+    // A(2,0) = 0;
+    // A(2,1) = sin(phi)/cos(theta);
+    // A(2,2) = cos(phi)/cos(theta);
+
+    A(0,0) = cos(psi)/cos(theta);
+    A(0,1) = -sin(psi)/cos(theta);
+    A(0,2) = 0;
+    A(1,0) = sin(psi);
+    A(1,1) = cos(psi);
+    A(1,2) = 0;
+    A(2,0) = -cos(psi)*tan(theta);
+    A(2,1) = sin(psi)*tan(theta);
+    A(2,2) = 1;
     
 
     casadi::SX tau = GetTorque(st,con,conp1);
