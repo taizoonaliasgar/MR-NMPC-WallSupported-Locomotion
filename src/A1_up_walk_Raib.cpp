@@ -522,8 +522,8 @@ int main(int argc, char *argv[]) {
     LocoWrapperwalk* loco_obj = new LocoWrapperwalk(argc,argv);
     
     SRBNMPCR* loco_plan = new SRBNMPCR(argc,argv,1,0);
-    //loco_plan->generator();
-    std::string file_name = "upright_h5_73R";
+    // loco_plan->generator();
+    std::string file_name = "upright_Feb20_1R";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
