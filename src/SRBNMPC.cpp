@@ -452,9 +452,9 @@ casadi::SX SRBNMPC::GetTorque(casadi::SX st,casadi::SX con){
     casadi::SX Rtheta = casadi::SX::zeros(3,3);
     casadi::SX Rpsi = casadi::SX::zeros(3,3);
 
-    Rphi(0,0) = 1; Rphi(1,1) = cos(st(6)); Rphi(1,2) = -sin(st(6));Rphi(2,1) = sin(st(6));Rphi(2,2) = cos(st(6));
-    Rtheta(0,0) = cos(st(7)); Rtheta(0,2) = sin(st(7)); Rtheta(1,1) = 1; Rtheta(2,0) = -sin(st(7)); Rtheta(2,2) = cos(st(7));
-    Rpsi(0,0) = cos(st(8)); Rpsi(0,1) = -sin(st(8)); Rpsi(1,0) = sin(st(8)); Rpsi(1,1) = cos(st(8)); Rpsi(2,2) = 1;
+    Rphi(0,0) = 1; Rphi(1,1) = cos(st(6)); Rphi(1,2) = sin(st(6));Rphi(2,1) = -sin(st(6));Rphi(2,2) = cos(st(6));
+    Rtheta(0,0) = cos(st(7)); Rtheta(0,2) = -sin(st(7)); Rtheta(1,1) = 1; Rtheta(2,0) = sin(st(7)); Rtheta(2,2) = cos(st(7));
+    Rpsi(0,0) = cos(st(8)); Rpsi(0,1) = sin(st(8)); Rpsi(1,0) = -sin(st(8)); Rpsi(1,1) = cos(st(8)); Rpsi(2,2) = 1;
     
     casadi::SX Ri = mtimes(Rpsi,Rtheta);
     casadi::SX R = mtimes(Ri,Rphi);
