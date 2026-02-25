@@ -83,10 +83,10 @@ void LocoWrapperwalk::calcTau(const double q[18], const double dq[18], const dou
         }else{
             phaseVar = getPhase(1.0*locoTick, 0.0, 199);
             flphase = getPhase(1.0*locoTick-49, 0.0, 145);
-            rlphase = getPhase(1.0*locoTick-79, 0.0, 115);
+            rlphase = getPhase(1.0*locoTick-49, 0.0, 145);
             flphase = (flphase<0)?0:(flphase>1)?1:flphase;
             rlphase = (rlphase<0)?0:(rlphase>1)?1:rlphase;
-            if(locoTick==50||locoTick==80){
+            if(locoTick==50){//||locoTick==80){
                 conEst->forceDomChange();
             }            
         }
@@ -129,6 +129,8 @@ void LocoWrapperwalk::setoptNLstate(Eigen::Matrix<double, 33, 1> HLopt){
     //opt_HLstate(2) = 0.35;
     opt_HLstate.block(12,0,12,1) = HLopt.block(16,0,12,1);
     NLstep = HLopt.block(28,0,5,1);
+    NLstep(2) = NLstep(1);
+    NLstep(3) = NLstep(0);
 }
 
 

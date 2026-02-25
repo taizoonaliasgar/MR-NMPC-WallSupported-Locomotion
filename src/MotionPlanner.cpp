@@ -499,7 +499,7 @@ void MotionPlanner::setStep_NMPC(Eigen::Matrix<double,5,1> NLstep, double vdes, 
     if(phase<0.3){
         traj.FRstepLen =  NLstep(0);  
         traj.FLstepLen =  NLstep(1); 
-    }else{
+    // }else{
         traj.RLstepLen =  NLstep(3); 
         traj.RRstepLen =  NLstep(2);  
     }                                

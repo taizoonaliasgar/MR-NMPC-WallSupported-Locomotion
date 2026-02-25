@@ -47,9 +47,9 @@ SRBNMPC::SRBNMPC(int argc, char *argv[], int numRobots, int id) : Parameters(arg
     // contact_sequence_dm(0,casadi::Slice(25,40)) = casadi::DM::zeros(1,15);
     // contact_sequence_dm(3,casadi::Slice(28,40)) = casadi::DM::zeros(1,12);
     contact_sequence_dm(1,casadi::Slice(25,40)) = casadi::DM::zeros(1,15);
-    contact_sequence_dm(2,casadi::Slice(28,40)) = casadi::DM::zeros(1,12);
+    contact_sequence_dm(2,casadi::Slice(25,40)) = casadi::DM::zeros(1,15);
     contact_sequence_dm(0,casadi::Slice(5,20)) = casadi::DM::zeros(1,15);
-    contact_sequence_dm(3,casadi::Slice(8,20)) = casadi::DM::zeros(1,12);
+    contact_sequence_dm(3,casadi::Slice(5,20)) = casadi::DM::zeros(1,15);
 
     for (size_t i = 0; i < HORIZ; i++)
     {
@@ -92,7 +92,7 @@ void SRBNMPC::generator(){
     //casadi::Function solver = casadi::nlpsol("solver", "ipopt", {{"x", x}, {"f", f}, {"g", g}, {"p", p}});//, opts);
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", nlp_prob, opts);
     // file name
-    std::string file_name = "upright_Feb20_1";
+    std::string file_name = "upright_Feb25_symm";
     // code predix
     std::string prefix_code = std::filesystem::current_path().string() + "/";
 
@@ -203,10 +203,10 @@ casadi::DM SRBNMPC::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t control
         x_des((i+1)*NFS+13) = contact_sequence_dm(1,conp1_next)*contact_sequence_dm(1,conp1)*x_des(i*NFS+13)+
                                 (1-contact_sequence_dm(1,conp1)*contact_sequence_dm(1,conp1_next))*(x0+front_off+3/2*Tstance*localvelocity);
         
-        x_des((i+1)*NFS+14) = contact_sequence_dm(2,conp1_next)*contact_sequence_dm(2,conp1)*x_des(i*NFS+14)+
+        x_des((i+1)*NFS+14) = contact_sequence_dm(2,conp1_next)*contact_sequence_dm(2,conp1)*x_des(i*NFS+13)+
                                 (1-contact_sequence_dm(2,conp1)*contact_sequence_dm(2,conp1_next))*(x0+rear_off+3/2*Tstance*localvelocity);
         
-        x_des((i+1)*NFS+15) = contact_sequence_dm(3,conp1_next)*contact_sequence_dm(3,conp1)*x_des(i*NFS+15)+
+        x_des((i+1)*NFS+15) = contact_sequence_dm(3,conp1_next)*contact_sequence_dm(3,conp1)*x_des(i*NFS+12)+
                                 (1-contact_sequence_dm(3,conp1)*contact_sequence_dm(3,conp1_next))*(x0+rear_off+3/2*Tstance*localvelocity);
 
 
@@ -407,8 +407,8 @@ casadi::SX SRBNMPC::NonlinearDynamics(casadi::SX st,casadi::SX con, casadi::SX c
 
     rhs(12) = (con(12))*conm1(0)*(1-conc(0));
     rhs(13) = (con(13))*conm1(1)*(1-conc(1));
-    rhs(14) = (con(14))*conm1(2)*(1-conc(2));
-    rhs(15) = (con(15))*conm1(3)*(1-conc(3));
+    rhs(14) = (con(13))*conm1(2)*(1-conc(2));
+    rhs(15) = (con(12))*conm1(3)*(1-conc(3));
 
     // rhs(12) = (con(12)+casadi::SX(Raibstep))*conp1(0);//contact(0);
     // rhs(13) = (con(13)+casadi::SX(Raibstep))*conp1(1);//contact(1);

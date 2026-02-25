@@ -275,17 +275,17 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
 
     // Apply the disturbance force to the desired body
     // Assuming the body index is 0, adjust as needed
-    if(controlTick > 8000 && controlTick < 9000){
+    // if(controlTick > 8000 && controlTick < 9000){
 
-        double amp = 50.0;
-        double dist = distx(controlTick, amp);
-        Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
-        A1.back()->setExternalForce(0, disturbanceForce);
+    //     double amp = 50.0;
+    //     double dist = distx(controlTick, amp);
+    //     Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
+    //     A1.back()->setExternalForce(0, disturbanceForce);
 
-        Eigen::Vector3d offset(0,0,0.1);
-        Eigen::Vector3d torque = offset.cross(disturbanceForce);
-        A1.back()->setExternalTorque(0, torque);
-    }
+    //     Eigen::Vector3d offset(0,0,0.1);
+    //     Eigen::Vector3d torque = offset.cross(disturbanceForce);
+    //     A1.back()->setExternalTorque(0, torque);
+    // }
 };
 
 
@@ -531,7 +531,7 @@ int main(int argc, char *argv[]) {
     loco_obj->setRFfalse();
     SRBNMPC* loco_plan = new SRBNMPC(argc,argv,1,0);
     // loco_plan->generator();
-    std::string file_name = "upright_Feb20_1";
+    std::string file_name = "upright_Feb25_symm";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
