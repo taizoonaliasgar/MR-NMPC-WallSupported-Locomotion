@@ -28,7 +28,7 @@ FiltStruct_f* filt = (FiltStruct_f*)malloc(sizeof(FiltStruct_f));
 
 double distx(size_t controlTick, double amp){
     
-    return amp*sin((controlTick-8000)/1000.0/M_PI);
+    return amp*sin((controlTick-8000)/1000.0*M_PI);
     //return dist;
 };
 
@@ -276,13 +276,17 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
 
     // Apply the disturbance force to the desired body
     // Assuming the body index is 0, adjust as needed
-    // if(controlTick > 8000 && controlTick < 9000){
+    if(controlTick > 8000 && controlTick < 9000){
 
-    //     double amp = 120.0;
-    //     double dist = distx(controlTick, amp);
-    //     Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
-    //     A1.back()->setExternalForce(0, disturbanceForce);
-    // }
+        double amp = 50.0;
+        double dist = distx(controlTick, amp);
+        Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
+        A1.back()->setExternalForce(0, disturbanceForce);
+
+        Eigen::Vector3d offset(0,0,0.1);
+        Eigen::Vector3d torque = offset.cross(disturbanceForce);
+        A1.back()->setExternalTorque(0, torque);
+    }
 };
 
 
@@ -686,16 +690,19 @@ int main(int argc, char *argv[]) {
         //std::cout << "simcounter" << "\t" << simcounter << std::endl;
         //std::cout << jointPosTotal(0) << "\t" << jointPosTotal(14) << "\t" << jointPosTotal(17) << std::endl;
         
-        if(abs(jointPosTotal(1))>0.04){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
-            break;
-        }else if(abs(jointPosTotal(2)-0.5)>0.05){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
-            break;
-        }else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
-            break;
-        }else if(jointPosTotal(0)>7){
+        // if(abs(jointPosTotal(1))>0.04){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
+        //     break;
+        // }else if(abs(jointPosTotal(2)-0.5)>0.05){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
+        //     break;
+        // }
+        // else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
+        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
+        //     break;
+        // } 
+        // else 
+        if(jointPosTotal(0)>7){
             std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
             break;
         }
