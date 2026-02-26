@@ -9,7 +9,7 @@
 #include "raisimBasicImguiPanel.hpp"
 #include "raisimKeyboardCallback.hpp" // THIS IS WHERE cmd.vel AND cmd.pose ARE IMPLEMENTED (as globals)
 #include "helper.hpp"
-//#include "helper2.hpp"
+#include "helper2.hpp"
 #include "Filters.h"
 #include <iostream>
 #include <filesystem>
@@ -330,7 +330,7 @@ int main(int argc, char *argv[]) {
     terrainProperties.fractalGain = 0.0;
 
     raisim::HeightMap *ground = world.addHeightMap(0.0, 0.0, terrainProperties);
-    vis->createGraphicalObject(ground, "terrain", "checkerboard_blue");
+    vis->createGraphicalObject(ground, "terrain", "black");
     world.setDefaultMaterial(0.8, 0.0, 0.0); //surface friction could be 0.8 or 1.0
     vis->addVisualObject("extForceArrow", "arrowMesh", "red", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP); 
      
@@ -396,7 +396,7 @@ int main(int argc, char *argv[]) {
     
     A1.back()->setControlMode(raisim::ControlMode::FORCE_AND_TORQUE);
     A1.back()->setName("A1_Robot");
-    //assignBodyColors(vis,"A1","collision","gray");
+    assignBodyColors(vis, "A1", "collision", "white");
 
     raisim::Box *box_right = world.addBox(200.0, 0.2, 0.8, 1000000, "rubber");//terrainProperties);
     raisim::Box *box_left = world.addBox(200.0, 0.2, 0.8, 1000000, "rubber");
@@ -405,7 +405,8 @@ int main(int argc, char *argv[]) {
     box_left->setPosition(0,0.37,0.4);
 
     //vis->createGraphicalObject(box_right, "right_wall", "checkerboard_blue");
-    vis->createGraphicalObject(box_left, "left_wall", "checkerboard_blue");
+    // vis->createGraphicalObject(box_left, "left_wall", "checkerboard_blue");
+    vis->createGraphicalObject(box_left, "left_wall", "gray");
     
     A1.back()->getCollisionBody("FR_foot/0").setMaterial("wood");
     A1.back()->getCollisionBody("FL_foot/0").setMaterial("wood");
@@ -562,14 +563,14 @@ int main(int argc, char *argv[]) {
     std::string cameraview = "side";
     bool panX = true;                // Pan view with robot during walking (X direction)
     bool panY = false;                // Pan view with robot during walking (Y direction)
-    bool record = false;             // Record?
+    bool record = true;             // Record?
     double startTime = 0*ctrlHz;    // Recording start time
     double simlength = 30000;//60000;//300*ctrlHz;   // Sim end time
     double fps = 30;            
     //std::string directory = "/home/taizoon/raisimEnv/raisimWorkspace/footstep_planner/datalog/Oct10/";
-    std::string directory = "../datalog/Dec4/";
+    std::string directory = "../data25/Feb26/";
     // std::string filename = "Payload_Inplace";
-    std::string filename = "upright_A1_1ms";
+    std::string filename = "planner_769021008";
     // std::string filename = "inplace_sim";
 
 

@@ -9,7 +9,7 @@
 #include "raisimBasicImguiPanel.hpp"
 #include "raisimKeyboardCallback.hpp" // THIS IS WHERE cmd.vel AND cmd.pose ARE IMPLEMENTED (as globals)
 #include "helper.hpp"
-//#include "helper2.hpp"
+#include "helper2.hpp"
 #include "Filters.h"
 #include <iostream>
 #include <filesystem>
@@ -276,17 +276,17 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
 
     // Apply the disturbance force to the desired body
     // Assuming the body index is 0, adjust as needed
-    if(controlTick > 8000 && controlTick < 9000){
+    // if(controlTick > 8000 && controlTick < 9000){
 
-        double amp = 50.0;
-        double dist = distx(controlTick, amp);
-        Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
-        A1.back()->setExternalForce(0, disturbanceForce);
+    //     double amp = 50.0;
+    //     double dist = distx(controlTick, amp);
+    //     Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
+    //     A1.back()->setExternalForce(0, disturbanceForce);
 
-        Eigen::Vector3d offset(0,0,0.1);
-        Eigen::Vector3d torque = offset.cross(disturbanceForce);
-        A1.back()->setExternalTorque(0, torque);
-    }
+    //     Eigen::Vector3d offset(0,0,0.1);
+    //     Eigen::Vector3d torque = offset.cross(disturbanceForce);
+    //     A1.back()->setExternalTorque(0, torque);
+    // }
 };
 
 
@@ -345,7 +345,7 @@ int main(int argc, char *argv[]) {
     terrainProperties.fractalGain = 0.0;
 
     raisim::HeightMap *ground = world.addHeightMap(0.0, 0.0, terrainProperties);
-    vis->createGraphicalObject(ground, "terrain", "checkerboard_blue");
+    vis->createGraphicalObject(ground, "terrain", "black");
     world.setDefaultMaterial(0.8, 0.0, 0.0); //surface friction could be 0.8 or 1.0
     vis->addVisualObject("extForceArrow", "arrowMesh", "red", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP); 
      
@@ -392,7 +392,7 @@ int main(int argc, char *argv[]) {
     
     A1.back()->setControlMode(raisim::ControlMode::FORCE_AND_TORQUE);
     A1.back()->setName("A1_Robot");
-    //assignBodyColors(vis,"A1","collision","gray");
+    assignBodyColors(vis,"A1","collision","white");
 
     raisim::Box *box_right = world.addBox(200.0, 0.2, 0.8, 1000000, "rubber");//terrainProperties);
     raisim::Box *box_left = world.addBox(200.0, 0.2, 0.8, 1000000, "rubber");
@@ -401,7 +401,7 @@ int main(int argc, char *argv[]) {
     box_left->setPosition(0,0.37,0.4);
 
     //vis->createGraphicalObject(box_right, "right_wall", "checkerboard_blue");
-    vis->createGraphicalObject(box_left, "left_wall", "checkerboard_blue");
+    vis->createGraphicalObject(box_left, "left_wall", "gray");
     
     A1.back()->getCollisionBody("FR_foot/0").setMaterial("wood");
     A1.back()->getCollisionBody("FL_foot/0").setMaterial("wood");
@@ -558,14 +558,14 @@ int main(int argc, char *argv[]) {
     std::string cameraview = "side";
     bool panX = true;                // Pan view with robot during walking (X direction)
     bool panY = false;                // Pan view with robot during walking (Y direction)
-    bool record = false;             // Record?
+    bool record = true;             // Record?
     double startTime = 0*ctrlHz;    // Recording start time
     double simlength = 30000;//60000;//300*ctrlHz;   // Sim end time
     double fps = 30;            
     //std::string directory = "/home/taizoon/raisimEnv/raisimWorkspace/footstep_planner/datalog/Oct10/";
-    std::string directory = "../datalog/Dec4/";
+    std::string directory = "../data25/Feb26/";
     // std::string filename = "Payload_Inplace";
-    std::string filename = "upright_A1R_1ms";
+    std::string filename = "raibert_769021008";
     // std::string filename = "inplace_sim";
 
 
@@ -690,20 +690,24 @@ int main(int argc, char *argv[]) {
         //std::cout << "simcounter" << "\t" << simcounter << std::endl;
         //std::cout << jointPosTotal(0) << "\t" << jointPosTotal(14) << "\t" << jointPosTotal(17) << std::endl;
         
-        // if(abs(jointPosTotal(1))>0.04){
-        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
-        //     break;
-        // }else if(abs(jointPosTotal(2)-0.5)>0.05){
-        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
-        //     break;
+        if(abs(jointPosTotal(1))>0.04){
+            std::cout << terrain_number << "\t" << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -1 << std::endl;
+            // break;
+        }else if(abs(jointPosTotal(2)-0.5)>0.05){
+            std::cout << terrain_number << "\t" << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -2 << std::endl;
+            // break;
+        }
+        else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
+            std::cout << terrain_number << "\t"<< simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
+            // break;
+        } 
+        // else if(jointPosTotal(0)>7){
+        //     std::cout << terrain_number << "\t" << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
+        //     // break;
         // }
-        // else if(jointPosTotal(15) > 0 || jointPosTotal(18) > 0){
-        //     std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << -3 << std::endl;
-        //     break;
-        // } 
-        // else 
+
         if(jointPosTotal(0)>7){
-            std::cout << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
+            std::cout << terrain_number << "\t" << simcounter << "\t" << jointPosTotal(0) << "\t" << jointPosTotal(1) << "\t" << jointPosTotal(2) << "\t" << jointPosTotal(15) << "\t" << jointPosTotal(18) << "\t" << 1 << std::endl;
             break;
         }
         simcounter++;

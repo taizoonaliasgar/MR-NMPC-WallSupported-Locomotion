@@ -188,8 +188,8 @@ casadi::DM SRBNMPCR::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t contro
     // if(controlTick%20 == 0){
         //Raibheur = 0.5*Tstance*(abs(q0(3))) + sqrt(stand_height/9.81)*(abs(q0(3))-localvelocity);
         x_dom_init = q0_dm(0);
-        Raibheur(0) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) + 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
-        Raibheur(1) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) + 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
+        Raibheur(0) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
+        Raibheur(1) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
         Raibheur(2) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity);// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
         Raibheur(3) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity);// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
     }
@@ -437,8 +437,23 @@ casadi::SX SRBNMPCR::GetTorque(casadi::SX st,casadi::SX con, casadi::SX conp1){
     casadi::SX Mr3 = skewsym(r3);  
     casadi::SX Mr4 = skewsym(r4);
     
-    return mtimes(Mr1,con(casadi::Slice(0,3)))+mtimes(Mr2,con(casadi::Slice(3,6)))+mtimes(Mr3,con(casadi::Slice(6,9)))+mtimes(Mr4,con(casadi::Slice(9,12)));
+    casadi::SX tauw =  mtimes(Mr1,con(casadi::Slice(0,3)))+mtimes(Mr2,con(casadi::Slice(3,6)))+mtimes(Mr3,con(casadi::Slice(6,9)))+mtimes(Mr4,con(casadi::Slice(9,12)));
 
+
+    casadi::SX Rphi = casadi::SX::zeros(3,3);
+    casadi::SX Rtheta = casadi::SX::zeros(3,3);
+    casadi::SX Rpsi = casadi::SX::zeros(3,3);
+
+    Rphi(0,0) = 1; Rphi(1,1) = cos(st(6)); Rphi(1,2) = sin(st(6));Rphi(2,1) = -sin(st(6));Rphi(2,2) = cos(st(6));
+    Rtheta(0,0) = cos(st(7)); Rtheta(0,2) = -sin(st(7)); Rtheta(1,1) = 1; Rtheta(2,0) = sin(st(7)); Rtheta(2,2) = cos(st(7));
+    Rpsi(0,0) = cos(st(8)); Rpsi(0,1) = sin(st(8)); Rpsi(1,0) = -sin(st(8)); Rpsi(1,1) = cos(st(8)); Rpsi(2,2) = 1;
+    
+    casadi::SX Ri = mtimes(Rpsi,Rtheta);
+    casadi::SX R = mtimes(Ri,Rphi);
+    
+    casadi::SX taub = mtimes(R,tauw);
+
+    return tauw;
 }
 
 casadi::SX SRBNMPCR::inequalitycons(casadi::SX con){
