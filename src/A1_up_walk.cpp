@@ -32,6 +32,135 @@ double distx(size_t controlTick, double amp){
     //return dist;
 };
 
+void plotGRFs(std::map<std::string, raisim::VisualObject>* list, const Eigen::Matrix<double,12,1>& GRF, const Eigen::Matrix<double,3,4> feet_vec, const std::vector<double>& contacts) {
+    // Ensure the vectors are of the correct size
+    if (GRF.size() < 12 || feet_vec.size() < 12 || contacts.size() < 4) {
+        std::cerr << "Error: Input vectors are of incorrect size." << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < 4; ++i) {
+        raisim::Vec<3> dir;
+        for (int j = 0; j < 3; ++j) {
+            dir[j] = GRF[3 * i + j];
+        }
+
+        // Normalize the direction vector if it is not a zero vector
+        double norm = dir.norm();
+        if (norm > 1e-6) {  // Check if the vector is non-zero to avoid division by zero
+            dir /= norm;
+        } else {
+            dir.setZero();
+        }
+
+        // Convert direction vector to a rotation matrix that aligns the z-axis with the direction vector
+        raisim::Mat<3, 3> rot;
+        if (contacts[i] == 1 && norm > 1e-6) {
+            raisim::zaxisToRotMat(dir, rot);
+        } else {
+            rot.setIdentity();  // Set rotation to identity if no contact or zero norm
+
+        }
+
+        // Visual object key
+        std::string objKey = "GRF" + std::to_string(i + 1);
+        (*list)[objKey].offset = {feet_vec(0, i), feet_vec(1, i), feet_vec(2, i)};
+        (*list)[objKey].scale = {0.2, 0.2, 0.005 * norm};  // Scaling based on the norm of the GRF vector
+
+        // Set the rotation matrix
+        (*list)[objKey].rotationOffset = rot;
+
+    }
+}
+
+void plotSafetyEnvelopeok(std::map<std::string, raisim::VisualObject>* list, double x, double z) {
+
+    // Update the position of the safety envelope visual object based on the robot's x position
+    std::string objKey = "safety_envelope_ok";
+    
+
+    if (list->find(objKey) != list->end()) {
+        (*list)[objKey].offset = {x, 0.0, z};  // Keep y and z constant, update x
+    } else {
+        std::cerr << "Error: Safety envelope visual object not found." << std::endl;
+    }
+
+}
+
+// void plotSafetyEnvelopenotok(std::map<std::string, raisim::VisualObject>* list, double x, double z) {
+
+//     // Update the position of the safety envelope visual object based on the robot's x position
+//     std::string objKey = "safety_envelope_notok";
+    
+
+//     if (list->find(objKey) != list->end()) {
+//         (*list)[objKey].offset = {x, 0.0, z};  // Keep y and z constant, update x
+//     } else {
+//         std::cerr << "Error: Safety envelope visual object not found." << std::endl;
+//     }
+
+// }
+
+void updateSafetyEnvelope(std::map<std::string, raisim::VisualObject>* list, double x, double z, bool violated) {
+    std::string okKey = "safety_envelope_ok";
+    std::string notOkKey = "safety_envelope_notok";
+
+    if (violated) {
+        // Show NotOK, Hide OK
+        (*list)[notOkKey].offset = {x, 0.0, z};
+        (*list)[notOkKey].scale = {0.15, 0.24, 0.5}; // Original size
+        
+        (*list)[okKey].scale = {0, 0, 0}; // Hide it
+    } else {
+        // Show OK, Hide NotOK
+        (*list)[okKey].offset = {x, 0.0, z};
+        (*list)[okKey].scale = {0.15, 0.24, 0.5}; // Original size
+        
+        (*list)[notOkKey].scale = {0, 0, 0}; // Hide it
+    }
+}
+
+void plotGRF_new(std::map<std::string, raisim::VisualObject>* list, const Eigen::Matrix<double,12,1>& GRF, const Eigen::Matrix<double,3,4> feet_vec) {
+    // Ensure the vectors are of the correct size
+    if (GRF.size() < 12) {
+        std::cerr << "Error: Input vectors are of incorrect size." << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < 4; ++i) {
+        raisim::Vec<3> dir;
+        for (int j = 0; j < 3; ++j) {
+            dir[j] = GRF(3 * i + j);
+        }
+
+        // Normalize the direction vector if it is not a zero vector
+        double norm = dir.norm();
+        if (norm > 1e-6) {  // Check if the vector is non-zero to avoid division by zero
+            dir /= norm;
+        } else {
+            dir.setZero();
+        }
+
+        // Convert direction vector to a rotation matrix that aligns the z-axis with the direction vector
+        raisim::Mat<3, 3> rot;
+        if ( norm > 1e-6) {
+            raisim::zaxisToRotMat(dir, rot);
+        } else {
+            rot.setIdentity();  // Set rotation to identity if no contact or zero norm
+
+        }
+
+        // Visual object key
+        std::string objKey = "GRF" + std::to_string(i + 1);
+        (*list)[objKey].offset = {feet_vec(0, i), feet_vec(1, i), feet_vec(2, i)};
+        (*list)[objKey].scale = {0.2, 0.2, 0.005 * norm};  // Scaling based on the norm of the GRF vector
+
+        // Set the rotation matrix
+        (*list)[objKey].rotationOffset = rot;
+
+    }
+}
+
 void setupCallback() {
     raisim::OgreVis *vis = raisim::OgreVis::get();
 
@@ -63,7 +192,7 @@ void setupCallback() {
     vis->getCameraMan()->setTopSpeed(5);
 }
 
-void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *loco_obj, SRBNMPC* loco_plan, casadi::Function solver, size_t controlTick, raisim::Contact contactInstance) {
+void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *loco_obj, SRBNMPC* loco_plan, casadi::Function solver, size_t controlTick, raisim::Contact contactInstance, raisim::OgreVis *vis) {
     /////////////////////////////////////////////////////////////////////
     //////////////////////////// INITIALIZE
     /////////////////////////////////////////////////////////////////////
@@ -98,6 +227,26 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
     /////////////////////////////////////////////////////////////////////
     A1.back()->getState(jointPosTotal, jointVelTotal);
     A1.back()->getBaseOrientation(rotMat);
+    
+    // Check safety envelope violation (y direction only)
+    // static bool envelope_violated = false;
+    // double envelope_y_max = 0.04;
+    // double envelope_y_min = -0.04;
+    
+    // bool current_violation = false;
+    // if (jointPosTotal(1) > envelope_y_max || jointPosTotal(1) < envelope_y_min) {
+    //     current_violation = true;
+    // }
+    
+    // if (current_violation && !envelope_violated) {
+    //     std::cout << "[WARNING] Safety envelope (Y-boundary) violated at sim time: " << controlTick << std::endl;
+    //     std::cout << "  Robot position: [" << jointPosTotal(0) << ", " << jointPosTotal(1) << ", " 
+    //               << jointPosTotal(2) << "]" << std::endl;
+    //     envelope_violated = true;
+    // }
+    // if (!current_violation && envelope_violated) {
+    //     envelope_violated = false;
+    // }
     
     raisim::MatDyn D = A1.back()->getMassMatrix();
     raisim::VecDyn H = A1.back()->getNonlinearities({0,0,-9.81});
@@ -247,7 +396,10 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
         loco_obj->calcTau(jpos,jvel,rotMatrixDouble,force,UPWALK,controlTick,duration_data);
         
         tau = loco_obj->getTorque();
-        
+        Eigen::Matrix<double,12,1> LL_force = loco_obj->getLLForce();
+        // plotGRF_new(&vis->getVisualObjectList(),LL_force, foot_position);
+        bool safe = abs(jointPosTotal(1))<=0.05;
+        updateSafetyEnvelope(&vis->getVisualObjectList(),jointPosTotal(0),jointPosTotal(2), !safe);
         //tau = tau*0;//Eigen::MatrixXd::Zero(18,1);// >(tau,18);
 
         //double temp[18] = {0};
@@ -257,6 +409,9 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
         //    tau[i] = 0;
         //}
     }
+
+    
+
 
     //std::cout<< "Torque deploy 1.3" << std::endl;
     jointTorqueFF = Eigen::Map< Eigen::Matrix<double,18,1> >(tau,18);
@@ -330,11 +485,20 @@ int main(int argc, char *argv[]) {
     terrainProperties.fractalGain = 0.0;
 
     raisim::HeightMap *ground = world.addHeightMap(0.0, 0.0, terrainProperties);
-    vis->createGraphicalObject(ground, "terrain", "black");
+    vis->createGraphicalObject(ground, "terrain", "checkerboard_blue");
     world.setDefaultMaterial(0.8, 0.0, 0.0); //surface friction could be 0.8 or 1.0
-    vis->addVisualObject("extForceArrow", "arrowMesh", "red", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP); 
-     
+    vis->addVisualObject("extForceArrow", "arrowMesh", "red", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
+    
+    // Add visual objects for ground reaction forces at each foot
+    vis->addVisualObject("GRF1", "arrowMesh", "blue", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
+    vis->addVisualObject("GRF2", "arrowMesh", "blue", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
+    vis->addVisualObject("GRF3", "arrowMesh", "blue", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
+    vis->addVisualObject("GRF4", "arrowMesh", "blue", {0.0, 0.0, 0.0}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
+    
+    vis->addVisualObject("safety_envelope_ok", "cubeMesh", "green_transparent", {0.15, 0.28, 0.5}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
+    vis->addVisualObject("safety_envelope_notok", "cubeMesh", "red_transparent", {0.15, 0.28, 0.5}, false, raisim::OgreVis::RAISIM_OBJECT_GROUP);
 
+    
     // // WEIGHT VISUALIZATION FOR LCSS PAPER, KEEP FOR NOW.
     // // create raisim objects
     // double scale = 1;
@@ -404,7 +568,7 @@ int main(int argc, char *argv[]) {
     box_right->setPosition(0,-0.37,0.4);
     box_left->setPosition(0,0.37,0.4);
 
-    //vis->createGraphicalObject(box_right, "right_wall", "checkerboard_blue");
+    vis->createGraphicalObject(box_right, "right_wall", "gray");
     // vis->createGraphicalObject(box_left, "left_wall", "checkerboard_blue");
     vis->createGraphicalObject(box_left, "left_wall", "gray");
     
@@ -560,7 +724,7 @@ int main(int argc, char *argv[]) {
     raisim::gui::showCollision = false;
     raisim::gui::showBodies = true;
 
-    std::string cameraview = "side";
+    std::string cameraview = "fronttop";
     bool panX = true;                // Pan view with robot during walking (X direction)
     bool panY = false;                // Pan view with robot during walking (Y direction)
     bool record = true;             // Record?
@@ -570,7 +734,7 @@ int main(int argc, char *argv[]) {
     //std::string directory = "/home/taizoon/raisimEnv/raisimWorkspace/footstep_planner/datalog/Oct10/";
     std::string directory = "../data25/Feb26/";
     // std::string filename = "Payload_Inplace";
-    std::string filename = "planner_769021008";
+    std::string filename = "planner_769021008_forces_final";
     // std::string filename = "inplace_sim";
 
 
@@ -597,6 +761,11 @@ int main(int argc, char *argv[]) {
         vis->getCameraMan()->getCamera()->setPosition(2, 0, 0.5);
         vis->getCameraMan()->getCamera()->yaw(Ogre::Radian(Pi/2));
         vis->getCameraMan()->getCamera()->pitch(Ogre::Radian(Pi/2));
+    }else if(cameraview == "fronttop"){
+        // Front-top view: elevated position looking down at robot from front
+        vis->getCameraMan()->getCamera()->setPosition(2, 0, 1.0);
+        vis->getCameraMan()->getCamera()->yaw(Ogre::Radian(Pi/2));
+        vis->getCameraMan()->getCamera()->pitch(Ogre::Radian(2*Pi/5));  // ~60 degrees down
     }else if(cameraview == "top"){
         //vis->getCameraMan()->getCamera()->setPosition(1, -3, 2.5);
         //vis->getCameraMan()->getCamera()->pitch(Ogre::Radian(1.0));
@@ -642,7 +811,7 @@ int main(int argc, char *argv[]) {
         // weightVis2->offset = {pos[0]-0.245/2,pos[1]-.078/2,pos[2]-0.015};
         // // std::cout<<pos[0]<<"\t"<<pos[1]<<"\t"<<pos[2]<<std::endl;
 
-        controller(A1,loco_obj,loco_plan,solver,simcounter,contactInstance);
+        controller(A1,loco_obj,loco_plan,solver,simcounter,contactInstance,vis);
         world.integrate();        
         
         if (simcounter%15 == 0)
@@ -659,6 +828,9 @@ int main(int argc, char *argv[]) {
             jointVelTotal.setZero();
             A1.back()->getState(jointPosTotal, jointVelTotal);
             if (cameraview=="front"){
+                currentPos[0] = jointPosTotal(0)+2;
+                vis->getCameraMan()->getCamera()->setPosition(currentPos);
+            } else if(cameraview=="fronttop"){
                 currentPos[0] = jointPosTotal(0)+2;
                 vis->getCameraMan()->getCamera()->setPosition(currentPos);
             } else if(cameraview=="side"){

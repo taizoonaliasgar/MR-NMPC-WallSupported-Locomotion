@@ -140,3 +140,35 @@ material my_gray
         }
     }
 }
+
+material green_transparent
+{
+   technique
+   {
+      pass
+      {
+         lighting on
+         scene_blend alpha_blend
+         depth_write off
+         ambient 0.0 1.0 0.0 0.6
+         diffuse 0.0 1.0 0.0 0.6
+         emissive 0 0 0 0
+      }
+   }
+}
+
+material red_transparent
+{
+   technique
+   {
+      pass
+      {
+         lighting on
+         scene_blend alpha_blend
+         depth_write off
+         ambient 1.0 0.0 0.0 0.6
+         diffuse 1.0 0.0 0.0 0.6
+         emissive 0 0 0 0
+      }
+   }
+}

@@ -55,6 +55,7 @@ public:
     void setoptNLstate(Eigen::Matrix<double, 33, 1> HLopt);
     void setcontactconfig(int controlMPC);
     void setRFfalse(){RaibFlag = false;};
+    Eigen::Matrix<double,12,1> getLLForce(){return ll->QP_force;};
 
     // Pointers to structs
     const StateInfo *state;
