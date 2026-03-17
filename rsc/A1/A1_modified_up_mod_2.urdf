@@ -411,7 +411,8 @@
     <child link="RR_calf"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0.01" friction="0.2"/>
-    <limit effort="33.5" lower="-3.09653369433" upper="3.096297857297" velocity="21"/>
+    <!--<limit effort="33.5" lower="-3.09653369433" upper="3.0916297857297" velocity="21"/>-->
+    <limit effort="33.5" lower="-2.69653369433" upper="-0.916297857297" velocity="21"/>
   </joint>
   <link name="RR_calf">
     <visual>
@@ -549,7 +550,8 @@
     <child link="RL_calf"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0.01" friction="0.2"/>
-    <limit effort="33.5" lower="-3.09653369433" upper="3.0916297857297" velocity="21"/>
+    <!--<limit effort="33.5" lower="-3.09653369433" upper="3.0916297857297" velocity="21"/>-->
+    <limit effort="33.5" lower="-2.69653369433" upper="-0.916297857297" velocity="21"/>
   </joint>
   <link name="RL_calf">
     <visual>

@@ -136,7 +136,7 @@ void SRBNMPCR::generator(){
     //std::cout << num_variables << std::endl;
 
     // file name
-    std::string file_name = "upright_Feb20_1R";
+    std::string file_name = "upright_Feb20_2R";
     // code predix
     std::string prefix_code = fs::current_path().string() + "/";
 
@@ -190,8 +190,8 @@ casadi::DM SRBNMPCR::motionPlannerN(Eigen::Matrix<double,16,1> q0, size_t contro
         x_dom_init = q0_dm(0);
         Raibheur(0) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
         Raibheur(1) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)+0.1;
-        Raibheur(2) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity);// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
-        Raibheur(3) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity);// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
+        Raibheur(2) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) - 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
+        Raibheur(3) = 0.5*Tstance*localvelocity + sqrt(stand_height/9.81)*(q0(3)-localvelocity) - 0.1;// + sqrt(stand_height/9.81)*(q0(3)-localvelocity)-0.1;
     }
 
     casadi::DM x0 = x_dom_init;
@@ -453,7 +453,7 @@ casadi::SX SRBNMPCR::GetTorque(casadi::SX st,casadi::SX con, casadi::SX conp1){
     
     casadi::SX taub = mtimes(R,tauw);
 
-    return tauw;
+    return taub;
 }
 
 casadi::SX SRBNMPCR::inequalitycons(casadi::SX con){

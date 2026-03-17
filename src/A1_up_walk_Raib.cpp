@@ -51,6 +51,38 @@ void updateSafetyEnvelope(std::map<std::string, raisim::VisualObject>* list, dou
     }
 }
 
+void plotdisturbance(std::map<std::string, raisim::VisualObject>* list, const Eigen::Matrix<double,3,1>& pose, const Eigen::Matrix<double,3,1> disturbanceForce) {
+    std::string objKey = "extForceArrow";
+    raisim::Vec<3> dir;
+    for (int j = 0; j < 3; ++j) {
+        dir[j] = disturbanceForce(j);
+    }
+
+    // Normalize the direction vector if it is not a zero vector
+    double norm = dir.norm();
+    if (norm > 1e-6) {  // Check if the vector is non-zero to avoid division by zero
+        dir /= norm;
+    } else {
+        dir.setZero();
+    }
+
+    // Convert direction vector to a rotation matrix that aligns the z-axis with the direction vector
+    raisim::Mat<3, 3> rot;
+    if (norm > 1e-6) {
+        raisim::zaxisToRotMat(dir, rot);
+    } else {
+        rot.setIdentity();  // Set rotation to identity if no contact or zero norm
+
+    }
+
+    (*list)[objKey].offset = {pose(0), pose(1), pose(2)};
+    (*list)[objKey].scale = {0.2, 0.2, 0.005 * norm};  // Scaling based on the norm of the disturbance force
+
+    // Set the rotation matrix
+    (*list)[objKey].rotationOffset = rot;
+
+}
+
 void plotGRF_new(std::map<std::string, raisim::VisualObject>* list, const Eigen::Matrix<double,12,1>& GRF, const Eigen::Matrix<double,3,4> feet_vec) {
     // Ensure the vectors are of the correct size
     if (GRF.size() < 12) {
@@ -311,8 +343,8 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
 
         Eigen::Matrix<double,12,1> LL_force = loco_obj->getLLForce();
         // plotGRF_new(&vis->getVisualObjectList(),LL_force, foot_position);
-        bool safe = abs(jointPosTotal(1))<=0.05;
-        updateSafetyEnvelope(&vis->getVisualObjectList(),jointPosTotal(0),jointPosTotal(2), !safe);
+        bool unsafe = abs(jointPosTotal(1))>0.05 || jointPosTotal(15) > 0 || jointPosTotal(18) > 0;
+        updateSafetyEnvelope(&vis->getVisualObjectList(),jointPosTotal(0),jointPosTotal(2), unsafe);
         
         //tau = tau*0;//Eigen::MatrixXd::Zero(18,1);// >(tau,18);
 
@@ -341,17 +373,20 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
 
     // Apply the disturbance force to the desired body
     // Assuming the body index is 0, adjust as needed
-    // if(controlTick > 8000 && controlTick < 9000){
+    Eigen::Vector3d disturbanceForce(0.0, 0.0, 0.0); 
+    if(controlTick > 8000 && controlTick < 9000){
 
-    //     double amp = 50.0;
-    //     double dist = distx(controlTick, amp);
-    //     Eigen::Vector3d disturbanceForce(dist, 0.0, 0.0); 
-    //     A1.back()->setExternalForce(0, disturbanceForce);
+        double amp = 50.0;
+        double dist = distx(controlTick, amp);
+        disturbanceForce(0) = dist;
+        A1.back()->setExternalForce(0, disturbanceForce);
 
-    //     Eigen::Vector3d offset(0,0,0.1);
-    //     Eigen::Vector3d torque = offset.cross(disturbanceForce);
-    //     A1.back()->setExternalTorque(0, torque);
-    // }
+        Eigen::Vector3d offset(0,0,0.1);
+        Eigen::Vector3d torque = offset.cross(disturbanceForce);
+        A1.back()->setExternalTorque(0, torque);
+    }
+
+    plotdisturbance(&vis->getVisualObjectList(),jointPosTotal.block(0,0,3,1), disturbanceForce);
 };
 
 
@@ -474,7 +509,7 @@ int main(int argc, char *argv[]) {
     box_right->setPosition(0,-0.37,0.4);
     box_left->setPosition(0,0.37,0.4);
 
-    vis->createGraphicalObject(box_right, "right_wall", "gray");
+    // vis->createGraphicalObject(box_right, "right_wall", "gray");
     vis->createGraphicalObject(box_left, "left_wall", "gray");
     
     A1.back()->getCollisionBody("FR_foot/0").setMaterial("wood");
@@ -502,7 +537,7 @@ int main(int argc, char *argv[]) {
     // ================================================= //
    // =========== Ground Height Variations ============ //
    // ================================================= //
-   int roughterrain = 1;
+   int roughterrain = 0;
    if(roughterrain){
        //long int randomSeed = std::time(nullptr);
        std::srand(terrain_number);
@@ -629,7 +664,7 @@ int main(int argc, char *argv[]) {
     raisim::gui::showCollision = false;
     raisim::gui::showBodies = true;
 
-    std::string cameraview = "fronttop";
+    std::string cameraview = "side"; // options: iso, isoside, side, front, fronttop, top
     bool panX = true;                // Pan view with robot during walking (X direction)
     bool panY = false;                // Pan view with robot during walking (Y direction)
     bool record = true;             // Record?
@@ -637,9 +672,9 @@ int main(int argc, char *argv[]) {
     double simlength = 30000;//60000;//300*ctrlHz;   // Sim end time
     double fps = 30;            
     //std::string directory = "/home/taizoon/raisimEnv/raisimWorkspace/footstep_planner/datalog/Oct10/";
-    std::string directory = "../data25/Feb26/";
+    std::string directory = "../data25/Feb27/";
     // std::string filename = "Payload_Inplace";
-    std::string filename = "raibert_769021008_forces_final";
+    std::string filename = "raib_dist_0p1_3";
     // std::string filename = "inplace_sim";
 
 
