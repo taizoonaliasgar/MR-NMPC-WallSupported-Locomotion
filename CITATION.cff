@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Multi-Rate NMPC for Wall-Supported Bipedal Locomotion of Quadrupedal Robots"
+repository-code: "https://github.com/taizoonaliasgar/FootstepPlanner"
+authors:
+  - family-names: Chunawala
+    given-names: Taizoon
+    affiliation: Virginia Tech
+  - family-names: Kim
+    given-names: Jeeseop
+    affiliation: The University of Texas at El Paso
+  - family-names: Akbari Hamed
+    given-names: Kaveh
+    affiliation: Virginia Tech
+preferred-citation:
+  type: conference-paper
+  title: "Multi-Rate Nonlinear Model Predictive Control for Wall-Supported Bipedal Locomotion of Quadrupedal Robots"
+  authors:
+    - family-names: Chunawala
+      given-names: Taizoon
+    - family-names: Kim
+      given-names: Jeeseop
+    - family-names: Akbari Hamed
+      given-names: Kaveh
+  collection-title: "IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)"
+  year: 2026
+  url: "https://arxiv.org/abs/2607.01574"
+  identifiers:
+    - type: other
+      value: "arXiv:2607.01574"
+      description: "arXiv preprint"
