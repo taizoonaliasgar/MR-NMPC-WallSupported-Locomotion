@@ -404,7 +404,7 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
             duration_data = static_cast<int>(duration.count());
-            //std::cout << "NMPC Solve Time: " << duration_data << "ms" << std::endl;
+            std::cout << "NMPC Solve Time: " << duration_data << "ms" << std::endl;
 
             loco_plan->setprevioussol(res.at("x"));
             
@@ -465,7 +465,7 @@ void controller(std::vector<raisim::ArticulatedSystem *> A1, LocoWrapperwalk *lo
     Eigen::Vector3d disturbanceForce(0.0, 0.0, 0.0); 
     if(controlTick > 8000 && controlTick < 9000){
 
-        double amp = 50.0;
+        double amp = 00.0;
         double dist = distx(controlTick, amp);
         disturbanceForce(0) = dist;
         A1.back()->setExternalForce(0, disturbanceForce);
@@ -600,7 +600,7 @@ int main(int argc, char *argv[]) {
     assignBodyColors(vis, "A1", "collision", "white");
 
     raisim::Box *box_right = world.addBox(200.0, 0.2, 0.8, 1000000, "rubber");//terrainProperties);
-    raisim::Box *box_left = world.addBox(200.0, 0.2, 1.8, 1000000, "rubber");
+    raisim::Box *box_left = world.addBox(200.0, 0.2, 0.8, 1000000, "rubber");
 
     box_right->setPosition(0,-0.37,0.4);
     box_left->setPosition(0,0.37,0.4);
@@ -733,7 +733,7 @@ int main(int argc, char *argv[]) {
     loco_obj->setRFfalse();
     SRBNMPC* loco_plan = new SRBNMPC(argc,argv,1,0);
     // loco_plan->generator();
-    std::string file_name = "upright_Feb20_1";
+    std::string file_name = "upright_Jun29_symm";//"upright_Feb20_1";
     // code predix
     // std::string prefix_code = "/home/trec/WorkRaj/raisim_legged/FootstepPlanner/build/";//fs::current_path().string() + "/";
     std::string prefix_code = std::filesystem::current_path().string() + "/";
@@ -743,7 +743,7 @@ int main(int argc, char *argv[]) {
 
     // Create a new NLP solver instance from the compiled code
     std::string lib_name = prefix_lib + file_name + ".so";
-    casadi::Dict opts = {{"ipopt.print_level", 1}, {"print_time", 0},{"ipopt.max_iter", 10},{"ipopt.acceptable_tol", 1e-2},{"ipopt.acceptable_obj_change_tol", 1e-2}};
+    casadi::Dict opts = {{"ipopt.print_level", 3}, {"print_time", 0},{"ipopt.max_iter", 10},{"ipopt.acceptable_tol", 1e-2},{"ipopt.acceptable_obj_change_tol", 1e-2}};
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", lib_name, opts);
 
     float a[3] = {1.00000000, -1.99555712, 0.99556697};

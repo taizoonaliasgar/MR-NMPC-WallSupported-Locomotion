@@ -83,7 +83,7 @@ void SRBNMPC::generator(){
 
     casadi::Dict opts;
     opts["ipopt.max_iter"] = 20;  // Replace Max_mpciter with its actual value
-    opts["ipopt.print_level"] = 0;  // Can be changed to 0 or 3 based on verbosity required
+    opts["ipopt.print_level"] = 3;  // Can be changed to 0 or 3 based on verbosity required
     opts["print_time"] = 0;  // Disable printing solver time
     opts["ipopt.acceptable_tol"] = 1e-2;  // Tolerance for stopping criterion
     opts["ipopt.acceptable_obj_change_tol"] = 1e-2;  // Objective change tolerance for stopping
@@ -92,7 +92,7 @@ void SRBNMPC::generator(){
     //casadi::Function solver = casadi::nlpsol("solver", "ipopt", {{"x", x}, {"f", f}, {"g", g}, {"p", p}});//, opts);
     casadi::Function solver = casadi::nlpsol("solver", "ipopt", nlp_prob, opts);
     // file name
-    std::string file_name = "upright_Feb25_symm";
+    std::string file_name = "upright_Jun29_symm";
     // code predix
     std::string prefix_code = std::filesystem::current_path().string() + "/";
 
