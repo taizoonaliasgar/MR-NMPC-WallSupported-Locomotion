@@ -2,6 +2,8 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2607.01574-b31b1b.svg)](https://arxiv.org/abs/2607.01574)
 [![IROS 2026](https://img.shields.io/badge/IROS-2026-blue.svg)](https://arxiv.org/abs/2607.01574)
+[![Video](https://img.shields.io/badge/Video-YouTube-red.svg)](https://www.youtube.com/watch?v=N6XwNJ0E9s0)
+[![Project page](https://img.shields.io/badge/Project-Page-791731.svg)](https://taizoonaliasgar.github.io/bipedal-mr-nmpc5.html)
 
 Official code for the IROS 2026 paper:
 
@@ -10,13 +12,22 @@ Official code for the IROS 2026 paper:
 > *IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2026*<br>
 > [[arXiv]](https://arxiv.org/abs/2607.01574)
 
+<p align="center"><img src="https://taizoonaliasgar.github.io/assets/bipedal/snapshots.png" width="720" alt="Wall-supported bipedal locomotion with MR-NMPC and the Raibert-heuristic baseline"></p>
+
 This repository has a layered planning and control framework that lets a Unitree A1 quadruped walk upright on its hind legs while bracing its front legs against the walls of a narrow corridor.
 
 - **High level: multi-rate NMPC (MR-NMPC), 100 Hz.** Uses a single rigid body (SRB) model. It jointly optimizes the CoM and orientation trajectories, the environment reaction forces (fast inputs), and the foothold locations (slow inputs). Footholds are added to the prediction model as states. An indicator function lets their step-length inputs change only at gait-domain switching instants.
 - **Low level: nonlinear whole-body controller (WBC), 1 kHz.** A QP based on virtual constraints. It enforces the full-order dynamics, friction cones, and torque limits while tracking the MR-NMPC references.
+- **Key idea.** Footholds are part of the SRB prediction model's state, so step locations and body motion are optimized together rather than set by a heuristic.
 - **Baseline.** The same pipeline with a Raibert-heuristic foot placement, used for comparison.
 
 All results are simulated in [RaiSim](https://raisim.com/) on a 45 cm wide corridor with random rough terrain and external pushes.
+
+## Results
+
+- **2.9x higher success** than the Raibert-heuristic baseline (68.8% vs 23.6%) over 250 randomized rough-terrain trials in simulation.
+- MR-NMPC solves in **8.3 ms on average at 100 Hz**, tracked by the 1 kHz QP-based WBC.
+- Preliminary hardware deployment on a Unitree Go2 (balanced for 60+ s), shown in the [video](https://www.youtube.com/watch?v=N6XwNJ0E9s0). Hardware code is not included in this repository.
 
 ## Repository layout
 
@@ -46,8 +57,8 @@ Tested on Ubuntu with:
 ## Build
 
 ```bash
-git clone https://github.com/taizoonaliasgar/FootstepPlanner.git
-cd FootstepPlanner
+git clone https://github.com/taizoonaliasgar/MR-NMPC-WallSupported-Locomotion.git
+cd MR-NMPC-WallSupported-Locomotion
 unzip optimization.zip          # extracts the qpSWIFT sources into optimization/
 ```
 
@@ -113,4 +124,4 @@ The work of T. Chunawala is partially supported by the National Science Foundati
 
 ## Contact
 
-Taizoon Chunawala, Department of Mechanical Engineering, Virginia Tech. Email: taizoonac@vt.edu. Webpage: <https://taizoonaliasgar.github.io/>
+Taizoon Chunawala, Department of Mechanical Engineering, Virginia Tech. Email: taizoon.chunawala@gmail.com. Webpage: <https://taizoonaliasgar.github.io/>
